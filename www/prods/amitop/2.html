@@ -1,0 +1,927 @@
+<!DOCTYPE html >
+<html lang="en">
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+<meta charset="utf-8" />
+<title>AMISTAR_Top___ENG_2012_08_01 Page2</title>
+</head>
+
+<body style="background-color:#919191;">
+
+<style type="text/css">
+    body {
+        margin:0;
+    }
+
+    #nav button {
+        width: 100px;
+        height: 30px;
+        vertical-align: middle;
+    }
+
+    #nav select {
+        width: 100px;
+        height: 27px;
+        vertical-align: middle;
+    }
+
+</style>
+
+<script type="text/javascript">
+
+    var zoom = 1;
+    var width = 0;
+    var height = 0;
+    var curPg = 0;
+    var pgCount = 0;
+	var jpedal;
+	var type;
+
+    function makeNavBar(pageCount, curPage, w, h, t) {
+	
+		//type 0 = single pages
+		//type 1 = splitspreads
+
+        pgCount = pageCount;
+        curPg = curPage;
+        width = w;
+        height = h;
+		type = t;
+        var opt;
+
+        //Populate the goto dropdown with page numbers
+        var goBtn = d("goBtn");
+		
+		if (type == 1) {//splitspreads
+			jpedal = d("container" + curPage);
+			
+			opt = document.createElement('option');
+            opt.value = 1;
+            opt.innerHTML = "Page " + 1;
+			goBtn.appendChild(opt);
+			
+			for (var i = 2; i <= pgCount; i += 2) {
+			
+				opt = document.createElement('option');
+				opt.value = i;
+				var text;
+				if (i != pgCount || pgCount % 2 == 1) {
+					text = "Page " + i + "-" + (i+1);
+				} else {
+					text = "Page " + i;
+				}
+				opt.innerHTML = text;
+				goBtn.appendChild(opt);
+			}
+			
+			goBtn.selectedIndex = curPage/2;
+			
+		} else {
+			jpedal = d("jpedal");
+			
+			for (var i = 1; i <= pgCount; i++) {
+				opt = document.createElement('option');
+				opt.value = i;
+				opt.innerHTML = "Page " + i;
+				goBtn.appendChild(opt);
+			}
+			goBtn.selectedIndex = curPage - 1;
+		}
+		
+
+
+        jpedal.style.transformOrigin = "top left";
+        jpedal.style.webkitTransformOrigin = "top left";
+        jpedal.style.msTransformOrigin = "top left";
+        jpedal.style.mozTransformOrigin = "top left";
+        jpedal.style.oTransformOrigin = "top left";
+        jpedal.style.margin = "0";
+
+        d("container").style.width = width + "px";
+        d("container").style.height = height + "px";
+
+        var doc = document.URL;
+        var jumper = "?zoom=";
+        var jumIdx = doc.toString().indexOf(jumper);
+        var zm = parseFloat(doc.substr(jumIdx + jumper.length));
+		var zoomBtn = d("zoomBtn");
+		if (width > getWidth()) {
+			zoomBtn.options[1].text = "100%";
+			zoomBtn.options[2].text = "Fit Width (Reset)";
+		}
+
+        if (!isNaN(zm) && zm > 0 && zm != 1) {
+            zoom = zm;
+            updateZoom();
+        } else if (width > getWidth()) {
+			zoomBtn.selectedIndex = 2;
+			zoomUpdate();
+		}
+    }
+	
+	function getWidth() {
+		var w = 0;
+		if (self.innerHeight) {
+			w = self.innerWidth;
+		} else if (document.documentElement && document.documentElement.clientHeight) {
+			w = document.documentElement.clientWidth;
+		} else if (document.body) {
+			w = document.body.clientWidth;
+		}
+		return w;
+	}
+
+    function updateZoom() {
+        jpedal.style.transform = "scale(" + zoom + ")";
+        jpedal.style.WebkitTransform = "scale(" + zoom + ")";
+        jpedal.style.msTransform = "scale(" + zoom + ")";
+        jpedal.style.MozTransform = "scale(" + zoom + ")";
+        jpedal.style.OTransform = "scale(" + zoom + ")";
+        d("container").style.width = width * zoom + "px";
+        d("container").style.height = height * zoom + "px";
+
+        var percent = Math.floor(zoom*100) + "%";
+        d("zoomBtn").options[0].innerHTML = percent;
+        d("zoomBtn").selectedIndex = 0;
+    }
+
+    function zoomIn() {
+        zoom = zoom*1.2;
+        updateZoom();
+    }
+
+    function zoomUpdate() {
+        var index = d("zoomBtn").selectedIndex;
+
+        if (index == 0) {
+            //Always current. Do nothing
+        } else if (index == 1) {//Reset
+            zoom = 1;
+        } else if (index == 2) {//Fit Width
+            var winWidth = window.innerWidth;
+            zoom = (winWidth - 40) / width;
+        } else if (index == 3) {//Fit Height
+            var winHeight = window.innerHeight;
+            zoom = (winHeight - 60) / height;
+        } else if (index == 4) {//Fit Page
+            var winWidth = window.innerWidth;
+            var winHeight = window.innerHeight;
+            var wScale = (winWidth - 40) / width;
+            var hScale = (winHeight - 60) / height;
+
+            if (wScale > hScale) {
+                zoom = hScale;
+            } else {
+                zoom = wScale;
+            }
+        }
+
+        updateZoom();
+    }
+
+    function zoomOut() {
+        zoom = zoom/1.2;
+        updateZoom();
+    }
+
+    function goToPage() {
+		var pg;
+		if (type == 0) {
+			pg = d("goBtn").selectedIndex + 1;
+		} else {
+			pg = (d("goBtn").selectedIndex * 2) + 1;
+		}
+        if (pg != curPg) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(pg, pgCount);
+			} else {
+				link = getMagazinePageHref(pg, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function getPageHref(page, count) {
+        var iWithLeadingZeros = page.toString();
+        var leadingZerosNeeded = count.toString().length - iWithLeadingZeros.length;
+
+        if(page === 1) {
+            iWithLeadingZeros = "index"
+        } else {
+            for(var n = 0; n < leadingZerosNeeded; n ++) {
+                iWithLeadingZeros = "0" + iWithLeadingZeros;
+            }
+        }
+        return iWithLeadingZeros;
+    }
+	
+	function getMagazinePageHref(page, count) {
+		if(page === 1) return getPageHref(page, count);
+		else if(page % 2 === 0) {
+			if(page === count)
+				return getPageHref(page, count);
+			else
+				return getPageHref(page, count) + "-" + getPageHref(page + 1, count);
+			}
+				else {
+			return getPageHref(page-1, count) + "-" + getPageHref(page, count);
+		}
+	}
+
+    function next() {
+        if (curPg < pgCount) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(curPg + 1, pgCount);
+			} else {
+				if (pgCount % 2 != 0 && curPg + 1 == pgCount) return;
+				link = getMagazinePageHref(curPg + 2, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function prev() {
+        if (curPg > 1) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(curPg - 1, pgCount);
+			} else {
+				link = getMagazinePageHref(curPg - 1, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function d(id){
+        return document.getElementById(id);
+    }
+
+</script>
+
+<div id="nav" style="background-color:#919191; padding-top: 10px; text-align: center; position: fixed; width: 100%; height: 40px; z-index:999;">
+    <button onclick="prev()" id="prev">Prev &lt;&lt;</button>
+    <select id="goBtn" onchange="goToPage()">
+
+    </select>
+    <button onclick="next()" id="next" style="margin-right:30px;">&gt;&gt; Next</button>
+
+    <button onclick="zoomOut()" id="zoomOut">Zoom Out</button>
+    <select id="zoomBtn" onchange="zoomUpdate()">
+        <option value="0">100%</option>
+        <option value="1">100% (Reset)</option>
+        <option value="2">Fit Width</option>
+        <option value="3">Fit Height</option>
+        <option value="4">Fit Page</option>
+
+    </select>
+    <button onclick="zoomIn()" id="zoomIn">Zoom In</button>
+</div>
+<div style="position:relative; width: 100%; height: 50px;"></div>
+
+<div id="container" style="margin: 0 auto 10px;">
+</script>
+
+
+
+<div id="jpedal" style="position:relative; width: 909px; height: 1286px; overflow: hidden; margin: 0 auto; box-shadow: 0 2px 6px rgba(100, 100, 100, 0.5);">
+
+<!-- Begin shared CSS values -->
+<!--[if lt IE 9]><style type="text/css">.t div div{zoom: 25%;}</style><![endif]-->
+<style type="text/css" >
+.t {
+	position: absolute;
+	-webkit-transform-origin: top left;
+	-moz-transform-origin: top left;
+	-o-transform-origin: top left;
+	-ms-transform-origin: top left;
+	-webkit-transform: scale(0.25);
+	-moz-transform: scale(0.25);
+	-o-transform: scale(0.25);
+	-ms-transform: scale(0.25);
+	z-index: 1;
+}
+.t div div {
+	position:absolute;
+	white-space:nowrap;
+	overflow:visible;
+}
+</style>
+<!-- End shared CSS values -->
+
+<!-- Begin shared JS -->
+<script type="text/javascript">
+
+// Ensure that we're not replacing any onload events
+function addLoadEvent(func) {
+	var oldonload = window.onload;
+	if (typeof window.onload != 'function') {
+		window.onload = func;
+	} else {
+		window.onload = function() {
+			if (oldonload) {
+				oldonload();
+			}
+			func();
+		}
+	}
+}
+addLoadEvent(function(){load2();});
+
+function adjustWordSpacing(divName,actualWidth) {
+
+	var el = document.getElementById(divName);
+	var rawWidth=el.offsetWidth;
+	if(actualWidth>rawWidth){
+		var spacing= 0;
+		var s=spacing+'px';
+		el.style.wordSpacing = s;
+		rawWidth=el.offsetWidth;
+
+		var diff=rawWidth-actualWidth;
+		if(diff<0)
+			diff=-diff;
+		var newDiff=diff-1;
+
+		while (spacing<40 && (newDiff===diff || newDiff<diff)){
+
+			diff=newDiff;
+			spacing= spacing+1;
+
+			s=spacing+'px';
+			el.style.wordSpacing = s;
+
+			newDiff=el.offsetWidth-actualWidth;
+			if(newDiff<0)
+				newDiff=-newDiff;
+		}
+		if(diff<=newDiff)
+			spacing=spacing-1;
+		s=spacing+'px';
+		el.style.wordSpacing =s;
+	}
+}
+
+</script>
+<!-- End shared JS -->
+
+
+<!-- Begin inline CSS -->
+<style type="text/css" >
+
+#t1_2{left:1523px;top:187px;}
+#t2_2{left:1883px;top:187px;}
+#t3_2{left:266px;top:279px;}
+#t4_2{left:335px;top:279px;}
+#t5_2{left:335px;top:338px;}
+#t6_2{left:266px;top:397px;}
+#t7_2{left:335px;top:397px;}
+#t8_2{left:574px;top:397px;}
+#t9_2{left:938px;top:397px;}
+#ta_2{left:335px;top:455px;}
+#tb_2{left:266px;top:514px;}
+#tc_2{left:335px;top:514px;}
+#td_2{left:335px;top:573px;}
+#te_2{left:335px;top:631px;}
+#tf_2{left:266px;top:690px;}
+#tg_2{left:335px;top:690px;}
+#th_2{left:335px;top:749px;}
+#ti_2{left:335px;top:807px;}
+#tj_2{left:335px;top:866px;}
+#tk_2{left:266px;top:1001px;}
+#tl_2{left:1049px;top:1001px;}
+#tm_2{left:266px;top:1118px;}
+#tn_2{left:370px;top:1118px;}
+#to_2{left:266px;top:1235px;}
+#tp_2{left:624px;top:1235px;}
+#tq_2{left:266px;top:1294px;}
+#tr_2{left:266px;top:1353px;}
+#ts_2{left:266px;top:1470px;}
+#tt_2{left:713px;top:1470px;}
+#tu_2{left:1080px;top:1470px;}
+#tv_2{left:266px;top:1529px;}
+#tw_2{left:266px;top:1587px;}
+#tx_2{left:266px;top:1646px;}
+#ty_2{left:266px;top:1705px;}
+#tz_2{left:266px;top:1763px;}
+#t10_2{left:266px;top:1898px;}
+#t11_2{left:370px;top:1898px;}
+#t12_2{left:266px;top:2015px;}
+#t13_2{left:266px;top:2074px;}
+#t14_2{left:320px;top:2074px;}
+#t15_2{left:557px;top:2074px;}
+#t16_2{left:671px;top:2074px;}
+#t17_2{left:266px;top:2133px;}
+#t18_2{left:266px;top:2250px;}
+#t19_2{left:303px;top:2250px;}
+#t1a_2{left:653px;top:2250px;}
+#t1b_2{left:266px;top:2309px;}
+#t1c_2{left:266px;top:2367px;}
+#t1d_2{left:266px;top:2426px;}
+#t1e_2{left:266px;top:2485px;}
+#t1f_2{left:1298px;top:2485px;}
+#t1g_2{left:266px;top:2543px;}
+#t1h_2{left:266px;top:2602px;}
+#t1i_2{left:266px;top:2661px;}
+#t1j_2{left:595px;top:2661px;}
+#t1k_2{left:945px;top:2661px;}
+#t1l_2{left:266px;top:2719px;}
+#t1m_2{left:266px;top:2778px;}
+#t1n_2{left:266px;top:2913px;}
+#t1o_2{left:370px;top:2913px;}
+#t1p_2{left:266px;top:3030px;}
+#t1q_2{left:266px;top:3089px;}
+#t1r_2{left:266px;top:3147px;}
+#t1s_2{left:266px;top:3206px;}
+#t1t_2{left:266px;top:3265px;}
+#t1u_2{left:266px;top:3399px;}
+#t1v_2{left:266px;top:3517px;}
+#t1w_2{left:266px;top:3575px;}
+#t1x_2{left:266px;top:3710px;}
+#t1y_2{left:266px;top:3827px;}
+#t1z_2{left:630px;top:3827px;}
+#t20_2{left:266px;top:3886px;}
+#t21_2{left:266px;top:3945px;}
+#t22_2{left:266px;top:4003px;}
+#t23_2{left:266px;top:4121px;}
+#t24_2{left:266px;top:4179px;}
+#t25_2{left:266px;top:4238px;}
+#t26_2{left:266px;top:4373px;}
+#t27_2{left:266px;top:4507px;}
+#t28_2{left:266px;top:4625px;}
+#t29_2{left:693px;top:4625px;}
+#t2a_2{left:930px;top:4625px;}
+#t2b_2{left:1045px;top:4625px;}
+#t2c_2{left:266px;top:4683px;}
+#t2d_2{left:266px;top:4742px;}
+#t2e_2{left:266px;top:4801px;}
+#t2f_2{left:266px;top:4859px;}
+#t2g_2{left:266px;top:4918px;}
+#t2h_2{left:1826px;top:279px;}
+#t2i_2{left:1826px;top:338px;}
+#t2j_2{left:1826px;top:397px;}
+#t2k_2{left:1826px;top:549px;}
+#t2l_2{left:1826px;top:625px;}
+#t2m_2{left:1895px;top:625px;}
+#t2n_2{left:2123px;top:625px;}
+#t2o_2{left:2593px;top:625px;}
+#t2p_2{left:2634px;top:625px;}
+#t2q_2{left:1895px;top:683px;}
+#t2r_2{left:1895px;top:742px;}
+#t2s_2{left:2249px;top:742px;}
+#t2t_2{left:1895px;top:801px;}
+#t2u_2{left:1895px;top:859px;}
+#t2v_2{left:1895px;top:918px;}
+#t2w_2{left:1826px;top:994px;}
+#t2x_2{left:1895px;top:994px;}
+#t2y_2{left:2342px;top:994px;}
+#t2z_2{left:2944px;top:994px;}
+#t30_2{left:1895px;top:1053px;}
+#t31_2{left:1826px;top:1129px;}
+#t32_2{left:1895px;top:1129px;}
+#t33_2{left:2227px;top:1129px;}
+#t34_2{left:1895px;top:1187px;}
+#t35_2{left:1895px;top:1246px;}
+#t36_2{left:1895px;top:1305px;}
+#t37_2{left:1826px;top:1381px;}
+#t38_2{left:1895px;top:1381px;}
+#t39_2{left:2271px;top:1381px;}
+#t3a_2{left:1895px;top:1439px;}
+#t3b_2{left:1895px;top:1498px;}
+#t3c_2{left:1895px;top:1557px;}
+#t3d_2{left:1826px;top:1691px;}
+#t3e_2{left:1826px;top:1767px;}
+#t3f_2{left:1895px;top:1767px;}
+#t3g_2{left:1895px;top:1826px;}
+#t3h_2{left:1895px;top:1885px;}
+#t3i_2{left:1895px;top:1943px;}
+#t3j_2{left:1895px;top:2002px;}
+#t3k_2{left:1826px;top:2078px;}
+#t3l_2{left:1895px;top:2078px;}
+#t3m_2{left:1895px;top:2137px;}
+#t3n_2{left:1826px;top:2213px;}
+#t3o_2{left:1895px;top:2213px;}
+#t3p_2{left:1895px;top:2271px;}
+#t3q_2{left:1895px;top:2330px;}
+#t3r_2{left:1826px;top:2465px;}
+#t3s_2{left:1826px;top:2541px;}
+#t3t_2{left:1895px;top:2541px;}
+#t3u_2{left:1895px;top:2599px;}
+#t3v_2{left:1895px;top:2658px;}
+#t3w_2{left:1826px;top:2734px;}
+#t3x_2{left:1895px;top:2734px;}
+#t3y_2{left:1895px;top:2793px;}
+#t3z_2{left:1826px;top:2869px;}
+#t40_2{left:1895px;top:2869px;}
+#t41_2{left:2325px;top:2869px;}
+#t42_2{left:2564px;top:2869px;}
+#t43_2{left:2680px;top:2869px;}
+#t44_2{left:1895px;top:2927px;}
+#t45_2{left:1895px;top:2986px;}
+#t46_2{left:1895px;top:3045px;}
+#t47_2{left:1895px;top:3103px;}
+#t48_2{left:1895px;top:3162px;}
+#t49_2{left:1895px;top:3238px;}
+#t4a_2{left:1928px;top:3297px;}
+#t4b_2{left:1895px;top:3373px;}
+#t4c_2{left:1928px;top:3431px;}
+#t4d_2{left:1928px;top:3490px;}
+#t4e_2{left:1826px;top:3566px;}
+#t4f_2{left:1895px;top:3566px;}
+#t4g_2{left:1895px;top:3625px;}
+#t4h_2{left:1895px;top:3701px;}
+#t4i_2{left:1945px;top:3759px;}
+#t4j_2{left:1945px;top:3818px;}
+#t4k_2{left:2866px;top:3818px;}
+#t4l_2{left:2986px;top:3818px;}
+#t4m_2{left:1945px;top:3877px;}
+#t4n_2{left:1945px;top:3935px;}
+#t4o_2{left:1945px;top:3994px;}
+#t4p_2{left:1826px;top:4070px;}
+#t4q_2{left:1895px;top:4070px;}
+#t4r_2{left:1895px;top:4129px;}
+#t4s_2{left:1895px;top:4187px;}
+#t4t_2{left:1895px;top:4246px;}
+#t4u_2{left:1895px;top:4305px;}
+#t4v_2{left:1895px;top:4363px;}
+#t4w_2{left:1826px;top:4439px;}
+#t4x_2{left:1895px;top:4439px;}
+#t4y_2{left:1895px;top:4498px;}
+#t4z_2{left:1895px;top:4557px;}
+#t50_2{left:1826px;top:4726px;}
+#t51_2{left:1930px;top:4726px;}
+#t52_2{left:1826px;top:4861px;}
+#t53_2{left:1826px;top:4919px;}
+
+.s1_2{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: SZZVHX-HelveticaNeueLTStd-Bd2;
+	color: rgb(0,0,0);
+}
+
+.s3_2{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: MT-Extra2;
+	color: rgb(0,0,0);
+}
+
+.s2_2{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: SZZVHX-HelveticaNeueLTStd-Lt2;
+	color: rgb(0,0,0);
+}
+
+</style>
+<!-- End inline CSS -->
+
+<!-- Begin embedded font definitions -->
+<style type="text/css" >
+
+@font-face {
+	font-family: SZZVHX-HelveticaNeueLTStd-Bd2;
+	src: url("2/fonts/SZZVHX-HelveticaNeueLTStd-Bd.otf");
+}
+
+@font-face {
+	font-family: MT-Extra2;
+	src: url("2/fonts/MT-Extra.otf");
+}
+
+@font-face {
+	font-family: SZZVHX-HelveticaNeueLTStd-Lt2;
+	src: url("2/fonts/SZZVHX-HelveticaNeueLTStd-Lt.otf");
+}
+
+</style>
+<!-- End embedded font definitions -->
+
+<!-- Begin text definitions (Positioned/styled in CSS) -->
+<div class="t">
+<div class="s1_2">
+<div id="t1_2">AMISTAR TOP</div>
+</div>
+<div class="s2_2">
+<div id="t2_2">/	2</div>
+<div id="t3_2">•	</div>
+<div id="t4_2">Do	not	reduce	the	dosage	rates	below	that	recommended	on	</div>
+<div id="t5_2">the	label.</div>
+<div id="t6_2">•	</div>
+<div id="t7_2">Never	 use	</div>
+</div>
+<div class="s1_2">
+<div id="t8_2">AMISTAR TOP</div>
+</div>
+<div class="s2_2">
+<div id="t9_2">as	 a	 corrective	 or	 curative	 treat-</div>
+<div id="ta_2">ment	or	after	the	unsuccessful	application	of	any	product.	</div>
+<div id="tb_2">•	</div>
+<div id="tc_2">When	 tank	 mixing	 or	 alternating	 with	 other	 fungicides,	 use	</div>
+<div id="td_2">mixing	partners	that	provide	satisfactory	disease	control	when	</div>
+<div id="te_2">used	alone	at	the	mixing	rate.	</div>
+<div id="tf_2">•	</div>
+<div id="tg_2">For	 specific	 information	 on	 resistance	 management,	 contact	</div>
+<div id="th_2">the	registration	holder	of	this	product	(Syngenta	South	Africa)	</div>
+<div id="ti_2">or	visit	the	FRAC	website	at	FRAC	website	at	http://www.frac.</div>
+<div id="tj_2">info/frac/index.html.</div>
+</div>
+<div class="s1_2">
+<div id="tk_2">4. DIRECTIONS FOR USE:</div>
+</div>
+<div class="s2_2">
+<div id="tl_2">Use	only	as	indicated.</div>
+</div>
+<div class="s1_2">
+<div id="tm_2">4.1 </div>
+<div id="tn_2">Compatibility:</div>
+<div id="to_2">AMISTAR TOP</div>
+</div>
+<div class="s2_2">
+<div id="tp_2">is	compatible	with	most	fungicides,	insecticides	</div>
+<div id="tq_2">and	acaracides	with	the	exception	of	products	containing	heavy	</div>
+<div id="tr_2">metals.	</div>
+<div id="ts_2">The	 compatibility	 of	</div>
+</div>
+<div class="s1_2">
+<div id="tt_2">AMISTAR TOP</div>
+</div>
+<div class="s2_2">
+<div id="tu_2">may	 be	 influenced	 by	 the	</div>
+<div id="tv_2">formulation	of	the	products	involved	as	well	as	the	quality	of	the	</div>
+<div id="tw_2">water.	Since	the	formulation	of	other	products	may	change	with-</div>
+<div id="tx_2">out	the	knowledge	of	Syngenta	and	the	quality	of	water	may	vary	</div>
+<div id="ty_2">from	farm	to	farm,	a	physical	compatibility	test	should	always	be	</div>
+<div id="tz_2">carried	out	prior	to	application.</div>
+</div>
+<div class="s1_2">
+<div id="t10_2">4.2 </div>
+<div id="t11_2">Mixing instructions:</div>
+</div>
+<div class="s2_2">
+<div id="t12_2">Half	fill	the	spray	tank	with	clean	water.	Add	the	required	amount	</div>
+<div id="t13_2">of</div>
+</div>
+<div class="s1_2">
+<div id="t14_2">AMISTAR</div>
+<div id="t15_2">TOP</div>
+</div>
+<div class="s2_2">
+<div id="t16_2">to	the	spray	tank	and	top	up	with	water	to	the	</div>
+<div id="t17_2">required	volume	while	agitating	continuously.	</div>
+<div id="t18_2">If	</div>
+</div>
+<div class="s1_2">
+<div id="t19_2">AMISTAR TOP </div>
+</div>
+<div class="s2_2">
+<div id="t1a_2">needs	to	be	used	in	tank	mix	combinations,	full	</div>
+<div id="t1b_2">cognisance	must	be	taken	of	all	warnings,	precautions	and	direc-</div>
+<div id="t1c_2">tions	for	use	on	that	label.	First,	mix	small	quantities	of	the	chemi-</div>
+<div id="t1d_2">cals	separately	with	water.	Check	for	any	signs	of	incompatibility	</div>
+<div id="t1e_2">e.g.	flocculation	etc.	It	is	recommended	to	add	</div>
+</div>
+<div class="s1_2">
+<div id="t1f_2">AMISTAR TOP</div>
+</div>
+<div class="s2_2">
+<div id="t1g_2">first	 and	 the	 mixing	 partner	 second	 while	 agita	ting.	 If	 mixing	</div>
+<div id="t1h_2">partners	are	packed	in	water-soluble	bags,	add	the	soluble	bags	</div>
+<div id="t1i_2">first	 and	 then	</div>
+</div>
+<div class="s1_2">
+<div id="t1j_2">AMISTAR TOP</div>
+</div>
+<div class="s2_2">
+<div id="t1k_2">.	 Continue	 agitation	 throughout	</div>
+<div id="t1l_2">application	and	do	not	allow	the	tank	mixture	to	stand	still	for	any	</div>
+<div id="t1m_2">period	of	time.</div>
+</div>
+<div class="s1_2">
+<div id="t1n_2">4.3 </div>
+<div id="t1o_2">Application:</div>
+</div>
+<div class="s2_2">
+<div id="t1p_2">Ensure	 that	 the	 applicator	 to	 be	 used	 is	 in	 a	 good	 working	</div>
+<div id="t1q_2">condition	 and	 correctly	 calibrated.	 Use	 the	 spray	 volumes	 as	</div>
+<div id="t1r_2">indicated	in	the	relevant	tables	to	ensure	good	coverage.	Ensure	</div>
+<div id="t1s_2">thorough	 agitation	 of	 the	 mixture	 in	 the	 tank	 during	 mixing	 and	</div>
+<div id="t1t_2">spraying.	Avoid	spray	overlap	as	crop	injury	may	occur.</div>
+</div>
+<div class="s1_2">
+<div id="t1u_2">Influence of rain on application:</div>
+</div>
+<div class="s2_2">
+<div id="t1v_2">Should	 it	 rain	 within	 two	 hours	 after	 application,	 the	 application	</div>
+<div id="t1w_2">must	be	repeated.</div>
+</div>
+<div class="s1_2">
+<div id="t1x_2">4.3.1 Ground Application:</div>
+<div id="t1y_2">AMISTAR TOP</div>
+</div>
+<div class="s2_2">
+<div id="t1z_2">may	 be	 applied	 with	 conventional	 high	 volume	</div>
+<div id="t20_2">spray	 equipment.	 Calibrate	 the	 apparatus	 before	 application	 to	</div>
+<div id="t21_2">ensure	that	the	correct	dosage	is	applied.		The	distribution	of	the	</div>
+<div id="t22_2">spray	volume	must	be	uniform	throughout	the	target	area.</div>
+<div id="t23_2">Ensure	good	coverage	of	the	whole	plant	(including	the	stems	and	</div>
+<div id="t24_2">leaves)	by	using	enough	water	and	suitable	spraying	equipment.	</div>
+<div id="t25_2">Do	not	apply	through	any	ultra-low	volume	(ULV)	spray	system.	</div>
+</div>
+<div class="s1_2">
+<div id="t26_2">4.3.2 Aerial application:</div>
+<div id="t27_2">Avoid chemical drift at all times.</div>
+</div>
+<div class="s2_2">
+<div id="t28_2">Aerial	application	of	</div>
+</div>
+<div class="s1_2">
+<div id="t29_2">AMISTAR</div>
+<div id="t2a_2">TOP</div>
+</div>
+<div class="s2_2">
+<div id="t2b_2">may	only	be	done	by	a	regi-</div>
+<div id="t2c_2">stered	 aerial	 application	 operator	 using	 a	 correctly	 calibrated,	</div>
+<div id="t2d_2">registered	 aircraft	 according	 to	 the	 instructions	 of	 SANS	 10118	</div>
+<div id="t2e_2">(Aerial	 Application	 of	 Agricultural	 Remedies).	 It	 is	 important	 to	</div>
+<div id="t2f_2">ensure	 that	 the	 spray	 mixture	 is	 distributed	 evenly	 over	 the	 tar-</div>
+<div id="t2g_2">get	area	and	that	the	loss	of	spray	material	during	application	is	</div>
+<div id="t2h_2">restricted	to	a	minimum.	Thorough	coverage	is	essential	for	effec-</div>
+<div id="t2i_2">tive	results.	Use	only	in	crops	where	aerial	application	is	indicated.	</div>
+<div id="t2j_2">It	is	therefore	essential	that	the	following	criteria	are	met:</div>
+<div id="t2k_2">a)	 Application	parameters:</div>
+<div id="t2l_2">•	</div>
+</div>
+<div class="s1_2">
+<div id="t2m_2">Volume:</div>
+</div>
+<div class="s2_2">
+<div id="t2n_2">A	 volume	 of	 30	 -	 40	</div>
+</div>
+<div class="s3_2">
+<div id="t2o_2">l</div>
+</div>
+<div class="s2_2">
+<div id="t2p_2">water/ha	 is	 recommended	</div>
+<div id="t2q_2">unless	specified	differently	in	the	recommendation	tables.	As	</div>
+</div>
+<div class="s1_2">
+<div id="t2r_2">AMISTAR TOP</div>
+</div>
+<div class="s2_2">
+<div id="t2s_2">has	not	been	evaluated	at	a	reduced	volume	</div>
+<div id="t2t_2">rate,	 the	 registration	 holder	 cannot	 guarantee	 efficacy	 or	</div>
+<div id="t2u_2">be	 held	 responsible	 for	 any	 adverse	 effects	 if	 the	 product	 is	</div>
+<div id="t2v_2">applied	aerially	at	a	lower	volume	rate	than	recommended.	</div>
+<div id="t2w_2">•	</div>
+</div>
+<div class="s1_2">
+<div id="t2x_2">Droplet coverage:</div>
+</div>
+<div class="s2_2">
+<div id="t2y_2">Droplet	coverage	of	25	-	35</div>
+<div id="t2z_2">droplets	per	</div>
+<div id="t30_2">cm²	must	be	recovered	at	the	target.</div>
+<div id="t31_2">•	</div>
+</div>
+<div class="s1_2">
+<div id="t32_2">Droplet size:</div>
+</div>
+<div class="s2_2">
+<div id="t33_2">A	droplet	spectrum	with	a	VMD	of	280	-	300	</div>
+<div id="t34_2">microns	is	recommended.	Ensure	that	the	production	of	fine	</div>
+<div id="t35_2">droplets	(less	than	150	microns,	with	a	high	drift	and	evapora-</div>
+<div id="t36_2">tion	potential)	is	restricted	to	a	minimum.</div>
+<div id="t37_2">•	</div>
+</div>
+<div class="s1_2">
+<div id="t38_2">Flying height:</div>
+</div>
+<div class="s2_2">
+<div id="t39_2">The	 height	 of	 the	 spray	 boom	 should	 be	</div>
+<div id="t3a_2">maintained	 at	 3	 -	 4	 meters	 above	 the	 target.	 	 Do	 not	 spray	</div>
+<div id="t3b_2">when	aircraft	is	in	a	climb,	at	the	top	or	during	a	dive,	or	when	</div>
+<div id="t3c_2">banking.</div>
+<div id="t3d_2">b)	 Equipment:</div>
+<div id="t3e_2">•	</div>
+<div id="t3f_2">Use	suitable	atomising	equipment	(hydraulic	nozzles	or	rotary	</div>
+<div id="t3g_2">atomisers)	 that	 will	 produce	 the	 desired	 droplet	 size	 and	</div>
+<div id="t3h_2">coverage,	but	which	will	ensure	the	minimum	loss	of	product	</div>
+<div id="t3i_2">either	through	endodrift	(within	target	field)	or	exodrift	(outside	</div>
+<div id="t3j_2">target	field).		</div>
+<div id="t3k_2">•	</div>
+<div id="t3l_2">The	 operator	 must	 use	 a	 setup	 that	 will	 produce	 a	 droplet	</div>
+<div id="t3m_2">spectrum	with	the	lowest	possible	Relative	Span.</div>
+<div id="t3n_2">•	</div>
+<div id="t3o_2">All	 nozzles	 /	 atomisers	 should	 be	 positioned	 within	 the	 inner	</div>
+<div id="t3p_2">60%	to	75%	of	the	wingspan	to	prevent	droplets	from	entering	</div>
+<div id="t3q_2">the	wingtip	vortices.</div>
+<div id="t3r_2">c)	 Meteorological	conditions:</div>
+<div id="t3s_2">•	</div>
+<div id="t3t_2">The	difference	in	temperature	between	the	wet	and	dry	bulb	</div>
+<div id="t3u_2">thermometers	 of	 a	 whirling	 hygrometer,	 should	 not	 exceed	</div>
+<div id="t3v_2">8°C.		</div>
+<div id="t3w_2">•	</div>
+<div id="t3x_2">Stop	spraying	if	the	wind	speed	exceeds	15	km/h	or	reduces	</div>
+<div id="t3y_2">to	less	than	5	km/h.</div>
+<div id="t3z_2">•	</div>
+<div id="t40_2">Aerial	application	of	</div>
+</div>
+<div class="s1_2">
+<div id="t41_2">AMISTAR</div>
+<div id="t42_2">TOP</div>
+</div>
+<div class="s2_2">
+<div id="t43_2">must	not	be	done	under	</div>
+<div id="t44_2">turbulent,	unstable	conditions	during	the	heat	of	the	day	when	</div>
+<div id="t45_2">rising	 thermals	 and	 downdraughts	 occur.	 It	 is	 important	 to	</div>
+<div id="t46_2">note	 that	 the	 application	 of	 this	 product	 under	 temperature	</div>
+<div id="t47_2">inversion	conditions	(spraying	in	or	above	the	inversion	layer)	</div>
+<div id="t48_2">may	lead	to	the	following	problems:</div>
+<div id="t49_2">-		Reduced	efficacy	due	to	suspension	and	possible	evapora-</div>
+<div id="t4a_2">tion	of	small	droplets	in	the	air	(inadequate	coverage).</div>
+<div id="t4b_2">-		Damage	 to	 other	 sensitive	 crops	 and	 or	 non-target	 areas	</div>
+<div id="t4c_2">through	the	movement	of	the	suspended	spray	cloud	away	</div>
+<div id="t4d_2">from	the	target	field.</div>
+<div id="t4e_2">•	</div>
+<div id="t4f_2">Under	the	following	climatic	conditions	drift	could	occur	more	</div>
+<div id="t4g_2">than	3	to	5	km:	</div>
+<div id="t4h_2">-			Cloudy	 weather	 with	 relative	 humidity	 above	 80	 %	 and	</div>
+<div id="t4i_2">low	air	movement	of	less	than	5	km	per	hour.	When	such	</div>
+<div id="t4j_2">conditions	prevail,	aerial	application	should	</div>
+</div>
+<div class="s1_2">
+<div id="t4k_2">NOT </div>
+</div>
+<div class="s2_2">
+<div id="t4l_2">be	carried	</div>
+<div id="t4m_2">out	where	sensitive	crops,	crop	seedlings	or	deciduous	fruit	</div>
+<div id="t4n_2">trees	e.g.	apples	in	budding	or	early	development	stages	are	</div>
+<div id="t4o_2">present	within	5	km	of	the	nearest	spray	path	of	the	aircraft.</div>
+<div id="t4p_2">•	</div>
+<div id="t4q_2">Ensure	that	the	pilot	knows	which	fields	to	spray.	Supply	the	</div>
+<div id="t4r_2">pilot	with	precise	identification	of	the	fields	to	be	sprayed	pre-</div>
+<div id="t4s_2">ferably	by	means	of	a	map	or	GPS	coordinates.	Indicate	adja-</div>
+<div id="t4t_2">cent	environmentally	sensitive	areas	or	sensitive	neighbouring	</div>
+<div id="t4u_2">crops,	beehives	or	water	sources	that	could	be	affected	by	the	</div>
+<div id="t4v_2">pesticide.</div>
+<div id="t4w_2">•	</div>
+<div id="t4x_2">Obtain	 an	 assurance	 from	 the	 pilot	 that	 the	 above	 require-</div>
+<div id="t4y_2">ments	will	be	met	and	that	relevant	data	will	be	compiled	in	a	</div>
+<div id="t4z_2">logbook	and	kept	for	future	reference.</div>
+</div>
+<div class="s1_2">
+<div id="t50_2">4.4 </div>
+<div id="t51_2">RECOMMENDATIONS:</div>
+</div>
+<div class="s2_2">
+<div id="t52_2">For	the	best	results,	study	the	sections	under	3.1	and	4.1	to	4.3	</div>
+<div id="t53_2">thoroughly.</div>
+</div>
+</div>
+<!-- End text definitions -->
+
+<!-- Begin page background -->
+<div id="pg2Overlay" style="width:100%; height:100%; position:absolute; z-index:0; background-color:rgba(0,0,0,0);"></div>
+<div id="pg2"><img src="2/2.png" id="pdf2" style="width:909px; height:1286px; background-color:white;"/></div>
+
+<!-- End page background -->
+
+<!-- Begin page loading JS -->
+<script type="text/javascript">
+var f2 = [['t1_2',338],['t7_2',232],['t8_2',343],['t9_2',701],['tc_2',1317],['tg_2',1317],['tk_2',618],['to_2',340],['ts_2',438],['tt_2',345],['tu_2',573],['t11_2',459],['t19_2',336],['t1f_2',341],['t1g_2',1387],['t1i_2',315],['t1j_2',350],['t1k_2',707],['t1p_2',1387],['t1q_2',1387],['t1s_2',1387],['t1u_2',740],['t1v_2',1387],['t1x_2',604],['t1y_2',343],['t1z_2',1022],['t20_2',1387],['t26_2',558],['t27_2',752],['t2c_2',1387],['t2d_2',1387],['t2e_2',1387],['t2f_2',1373],['t2k_2',569],['t2n_2',462],['t2p_2',578],['t2r_2',338],['t2t_2',1317],['t2u_2',1317],['t2x_2',417],['t32_2',296],['t38_2',323],['t39_2',941],['t3a_2',1317],['t3d_2',310],['t3g_2',1317],['t3l_2',1317],['t3o_2',1318],['t3r_2',622],['t3u_2',1317],['t45_2',1317],['t46_2',1317],['t4b_2',1317],['t4h_2',1317],['t4x_2',1304]];
+var c2 = 0;
+function fontAdjustments2(){;
+	if (c2<f2.length) {
+		adjustWordSpacing(f2[c2][0],f2[c2][1]);
+		c2++;
+		if (c2%10 == 0) {
+			setTimeout(function(){fontAdjustments2()},0);
+		} else {
+			fontAdjustments2();
+		}
+	}
+};
+function load2(){
+	var timeout = 100;
+	if (navigator.userAgent.match(/iPhone|iPad|iPod|Android/i)) timeout = 500;
+	setTimeout(fontAdjustments2,timeout);
+}
+</script>
+<!-- End page loading JS -->
+
+</div>
+
+</div>
+<div id="brand" style="margin:0 auto; width:94px; padding:5px; clear: both;">
+<a href="../../index.html">
+<img title="PDF to HTML5 Conversion by IDRsolutions" alt="PDF to HTML5 Conversion by IDRsolutions" style="border:0;" src="icons/logo.png" />
+</a>
+</div>
+<script type="text/javascript">
+	makeNavBar(6,2,909,1286,0);
+</script>
+</body>
+</html>

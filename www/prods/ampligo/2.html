@@ -1,0 +1,1329 @@
+<!DOCTYPE html >
+<html lang="en">
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+<meta charset="utf-8" />
+<title>AMPLIGO____Eng__2012_10_25 Page2</title>
+</head>
+
+<body style="background-color:#919191;">
+
+<style type="text/css">
+    body {
+        margin:0;
+    }
+
+    #nav button {
+        width: 100px;
+        height: 30px;
+        vertical-align: middle;
+    }
+
+    #nav select {
+        width: 100px;
+        height: 27px;
+        vertical-align: middle;
+    }
+
+</style>
+
+<script type="text/javascript">
+
+    var zoom = 1;
+    var width = 0;
+    var height = 0;
+    var curPg = 0;
+    var pgCount = 0;
+	var jpedal;
+	var type;
+
+    function makeNavBar(pageCount, curPage, w, h, t) {
+	
+		//type 0 = single pages
+		//type 1 = splitspreads
+
+        pgCount = pageCount;
+        curPg = curPage;
+        width = w;
+        height = h;
+		type = t;
+        var opt;
+
+        //Populate the goto dropdown with page numbers
+        var goBtn = d("goBtn");
+		
+		if (type == 1) {//splitspreads
+			jpedal = d("container" + curPage);
+			
+			opt = document.createElement('option');
+            opt.value = 1;
+            opt.innerHTML = "Page " + 1;
+			goBtn.appendChild(opt);
+			
+			for (var i = 2; i <= pgCount; i += 2) {
+			
+				opt = document.createElement('option');
+				opt.value = i;
+				var text;
+				if (i != pgCount || pgCount % 2 == 1) {
+					text = "Page " + i + "-" + (i+1);
+				} else {
+					text = "Page " + i;
+				}
+				opt.innerHTML = text;
+				goBtn.appendChild(opt);
+			}
+			
+			goBtn.selectedIndex = curPage/2;
+			
+		} else {
+			jpedal = d("jpedal");
+			
+			for (var i = 1; i <= pgCount; i++) {
+				opt = document.createElement('option');
+				opt.value = i;
+				opt.innerHTML = "Page " + i;
+				goBtn.appendChild(opt);
+			}
+			goBtn.selectedIndex = curPage - 1;
+		}
+		
+
+
+        jpedal.style.transformOrigin = "top left";
+        jpedal.style.webkitTransformOrigin = "top left";
+        jpedal.style.msTransformOrigin = "top left";
+        jpedal.style.mozTransformOrigin = "top left";
+        jpedal.style.oTransformOrigin = "top left";
+        jpedal.style.margin = "0";
+
+        d("container").style.width = width + "px";
+        d("container").style.height = height + "px";
+
+        var doc = document.URL;
+        var jumper = "?zoom=";
+        var jumIdx = doc.toString().indexOf(jumper);
+        var zm = parseFloat(doc.substr(jumIdx + jumper.length));
+		var zoomBtn = d("zoomBtn");
+		if (width > getWidth()) {
+			zoomBtn.options[1].text = "100%";
+			zoomBtn.options[2].text = "Fit Width (Reset)";
+		}
+
+        if (!isNaN(zm) && zm > 0 && zm != 1) {
+            zoom = zm;
+            updateZoom();
+        } else if (width > getWidth()) {
+			zoomBtn.selectedIndex = 2;
+			zoomUpdate();
+		}
+    }
+	
+	function getWidth() {
+		var w = 0;
+		if (self.innerHeight) {
+			w = self.innerWidth;
+		} else if (document.documentElement && document.documentElement.clientHeight) {
+			w = document.documentElement.clientWidth;
+		} else if (document.body) {
+			w = document.body.clientWidth;
+		}
+		return w;
+	}
+
+    function updateZoom() {
+        jpedal.style.transform = "scale(" + zoom + ")";
+        jpedal.style.WebkitTransform = "scale(" + zoom + ")";
+        jpedal.style.msTransform = "scale(" + zoom + ")";
+        jpedal.style.MozTransform = "scale(" + zoom + ")";
+        jpedal.style.OTransform = "scale(" + zoom + ")";
+        d("container").style.width = width * zoom + "px";
+        d("container").style.height = height * zoom + "px";
+
+        var percent = Math.floor(zoom*100) + "%";
+        d("zoomBtn").options[0].innerHTML = percent;
+        d("zoomBtn").selectedIndex = 0;
+    }
+
+    function zoomIn() {
+        zoom = zoom*1.2;
+        updateZoom();
+    }
+
+    function zoomUpdate() {
+        var index = d("zoomBtn").selectedIndex;
+
+        if (index == 0) {
+            //Always current. Do nothing
+        } else if (index == 1) {//Reset
+            zoom = 1;
+        } else if (index == 2) {//Fit Width
+            var winWidth = window.innerWidth;
+            zoom = (winWidth - 40) / width;
+        } else if (index == 3) {//Fit Height
+            var winHeight = window.innerHeight;
+            zoom = (winHeight - 60) / height;
+        } else if (index == 4) {//Fit Page
+            var winWidth = window.innerWidth;
+            var winHeight = window.innerHeight;
+            var wScale = (winWidth - 40) / width;
+            var hScale = (winHeight - 60) / height;
+
+            if (wScale > hScale) {
+                zoom = hScale;
+            } else {
+                zoom = wScale;
+            }
+        }
+
+        updateZoom();
+    }
+
+    function zoomOut() {
+        zoom = zoom/1.2;
+        updateZoom();
+    }
+
+    function goToPage() {
+		var pg;
+		if (type == 0) {
+			pg = d("goBtn").selectedIndex + 1;
+		} else {
+			pg = (d("goBtn").selectedIndex * 2) + 1;
+		}
+        if (pg != curPg) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(pg, pgCount);
+			} else {
+				link = getMagazinePageHref(pg, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function getPageHref(page, count) {
+        var iWithLeadingZeros = page.toString();
+        var leadingZerosNeeded = count.toString().length - iWithLeadingZeros.length;
+
+        if(page === 1) {
+            iWithLeadingZeros = "index"
+        } else {
+            for(var n = 0; n < leadingZerosNeeded; n ++) {
+                iWithLeadingZeros = "0" + iWithLeadingZeros;
+            }
+        }
+        return iWithLeadingZeros;
+    }
+	
+	function getMagazinePageHref(page, count) {
+		if(page === 1) return getPageHref(page, count);
+		else if(page % 2 === 0) {
+			if(page === count)
+				return getPageHref(page, count);
+			else
+				return getPageHref(page, count) + "-" + getPageHref(page + 1, count);
+			}
+				else {
+			return getPageHref(page-1, count) + "-" + getPageHref(page, count);
+		}
+	}
+
+    function next() {
+        if (curPg < pgCount) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(curPg + 1, pgCount);
+			} else {
+				if (pgCount % 2 != 0 && curPg + 1 == pgCount) return;
+				link = getMagazinePageHref(curPg + 2, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function prev() {
+        if (curPg > 1) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(curPg - 1, pgCount);
+			} else {
+				link = getMagazinePageHref(curPg - 1, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function d(id){
+        return document.getElementById(id);
+    }
+
+</script>
+
+<div id="nav" style="background-color:#919191; padding-top: 10px; text-align: center; position: fixed; width: 100%; height: 40px; z-index:999;">
+    <button onclick="prev()" id="prev">Prev &lt;&lt;</button>
+    <select id="goBtn" onchange="goToPage()">
+
+    </select>
+    <button onclick="next()" id="next" style="margin-right:30px;">&gt;&gt; Next</button>
+
+    <button onclick="zoomOut()" id="zoomOut">Zoom Out</button>
+    <select id="zoomBtn" onchange="zoomUpdate()">
+        <option value="0">100%</option>
+        <option value="1">100% (Reset)</option>
+        <option value="2">Fit Width</option>
+        <option value="3">Fit Height</option>
+        <option value="4">Fit Page</option>
+
+    </select>
+    <button onclick="zoomIn()" id="zoomIn">Zoom In</button>
+</div>
+<div style="position:relative; width: 100%; height: 50px;"></div>
+
+<div id="container" style="margin: 0 auto 10px;">
+</script>
+
+
+
+<div id="jpedal" style="position:relative; width: 909px; height: 1286px; overflow: hidden; margin: 0 auto; box-shadow: 0 2px 6px rgba(100, 100, 100, 0.5);">
+
+<!-- Begin shared CSS values -->
+<!--[if lt IE 9]><style type="text/css">.t div div{zoom: 25%;}</style><![endif]-->
+<style type="text/css" >
+.t {
+	position: absolute;
+	-webkit-transform-origin: top left;
+	-moz-transform-origin: top left;
+	-o-transform-origin: top left;
+	-ms-transform-origin: top left;
+	-webkit-transform: scale(0.25);
+	-moz-transform: scale(0.25);
+	-o-transform: scale(0.25);
+	-ms-transform: scale(0.25);
+	z-index: 1;
+}
+.t div div {
+	position:absolute;
+	white-space:nowrap;
+	overflow:visible;
+}
+</style>
+<!-- End shared CSS values -->
+
+<!-- Begin shared JS -->
+<script type="text/javascript">
+
+// Ensure that we're not replacing any onload events
+function addLoadEvent(func) {
+	var oldonload = window.onload;
+	if (typeof window.onload != 'function') {
+		window.onload = func;
+	} else {
+		window.onload = function() {
+			if (oldonload) {
+				oldonload();
+			}
+			func();
+		}
+	}
+}
+addLoadEvent(function(){load2();});
+
+function adjustWordSpacing(divName,actualWidth) {
+
+	var el = document.getElementById(divName);
+	var rawWidth=el.offsetWidth;
+	if(actualWidth>rawWidth){
+		var spacing= 0;
+		var s=spacing+'px';
+		el.style.wordSpacing = s;
+		rawWidth=el.offsetWidth;
+
+		var diff=rawWidth-actualWidth;
+		if(diff<0)
+			diff=-diff;
+		var newDiff=diff-1;
+
+		while (spacing<40 && (newDiff===diff || newDiff<diff)){
+
+			diff=newDiff;
+			spacing= spacing+1;
+
+			s=spacing+'px';
+			el.style.wordSpacing = s;
+
+			newDiff=el.offsetWidth-actualWidth;
+			if(newDiff<0)
+				newDiff=-newDiff;
+		}
+		if(diff<=newDiff)
+			spacing=spacing-1;
+		s=spacing+'px';
+		el.style.wordSpacing =s;
+	}
+}
+
+</script>
+<!-- End shared JS -->
+
+
+<!-- Begin inline CSS -->
+<style type="text/css" >
+
+#t1_2{left:1581px;top:165px;}
+#t2_2{left:1825px;top:165px;}
+#t3_2{left:352px;top:269px;}
+#t4_2{left:352px;top:328px;}
+#t5_2{left:816px;top:328px;}
+#t6_2{left:1064px;top:328px;}
+#t7_2{left:352px;top:387px;}
+#t8_2{left:928px;top:387px;}
+#t9_2{left:1493px;top:387px;}
+#ta_2{left:352px;top:445px;}
+#tb_2{left:266px;top:504px;}
+#tc_2{left:352px;top:504px;}
+#td_2{left:1180px;top:504px;}
+#te_2{left:1430px;top:504px;}
+#tf_2{left:352px;top:563px;}
+#tg_2{left:352px;top:621px;}
+#th_2{left:352px;top:680px;}
+#ti_2{left:624px;top:680px;}
+#tj_2{left:874px;top:680px;}
+#tk_2{left:352px;top:739px;}
+#tl_2{left:352px;top:797px;}
+#tm_2{left:352px;top:856px;}
+#tn_2{left:581px;top:856px;}
+#to_2{left:266px;top:949px;}
+#tp_2{left:266px;top:1008px;}
+#tq_2{left:266px;top:1125px;}
+#tr_2{left:266px;top:1219px;}
+#ts_2{left:525px;top:1219px;}
+#tt_2{left:1503px;top:1219px;}
+#tu_2{left:266px;top:1277px;}
+#tv_2{left:513px;top:1277px;}
+#tw_2{left:266px;top:1336px;}
+#tx_2{left:994px;top:1336px;}
+#ty_2{left:1243px;top:1336px;}
+#tz_2{left:266px;top:1395px;}
+#t10_2{left:266px;top:1453px;}
+#t11_2{left:1055px;top:1453px;}
+#t12_2{left:1307px;top:1453px;}
+#t13_2{left:266px;top:1512px;}
+#t14_2{left:266px;top:1629px;}
+#t15_2{left:337px;top:1629px;}
+#t16_2{left:1146px;top:1629px;}
+#t17_2{left:266px;top:1723px;}
+#t18_2{left:266px;top:1781px;}
+#t19_2{left:266px;top:1840px;}
+#t1a_2{left:266px;top:1957px;}
+#t1b_2{left:266px;top:2051px;}
+#t1c_2{left:266px;top:2132px;}
+#t1d_2{left:623px;top:2132px;}
+#t1e_2{left:1488px;top:2132px;}
+#t1f_2{left:266px;top:2190px;}
+#t1g_2{left:533px;top:2190px;}
+#t1h_2{left:634px;top:2190px;}
+#t1i_2{left:1004px;top:2190px;}
+#t1j_2{left:266px;top:2249px;}
+#t1k_2{left:266px;top:2308px;}
+#t1l_2{left:266px;top:2366px;}
+#t1m_2{left:266px;top:2425px;}
+#t1n_2{left:1621px;top:2425px;}
+#t1o_2{left:266px;top:2484px;}
+#t1p_2{left:266px;top:2542px;}
+#t1q_2{left:266px;top:2601px;}
+#t1r_2{left:266px;top:2694px;}
+#t1s_2{left:266px;top:2753px;}
+#t1t_2{left:352px;top:2753px;}
+#t1u_2{left:595px;top:2753px;}
+#t1v_2{left:1201px;top:2753px;}
+#t1w_2{left:352px;top:2812px;}
+#t1x_2{left:705px;top:2812px;}
+#t1y_2{left:352px;top:2870px;}
+#t1z_2{left:352px;top:2929px;}
+#t20_2{left:352px;top:2988px;}
+#t21_2{left:1621px;top:2988px;}
+#t22_2{left:352px;top:3046px;}
+#t23_2{left:266px;top:3105px;}
+#t24_2{left:352px;top:3105px;}
+#t25_2{left:794px;top:3105px;}
+#t26_2{left:1386px;top:3105px;}
+#t27_2{left:352px;top:3164px;}
+#t28_2{left:266px;top:3222px;}
+#t29_2{left:352px;top:3222px;}
+#t2a_2{left:679px;top:3222px;}
+#t2b_2{left:352px;top:3281px;}
+#t2c_2{left:352px;top:3340px;}
+#t2d_2{left:352px;top:3398px;}
+#t2e_2{left:266px;top:3457px;}
+#t2f_2{left:352px;top:3457px;}
+#t2g_2{left:723px;top:3457px;}
+#t2h_2{left:352px;top:3516px;}
+#t2i_2{left:352px;top:3574px;}
+#t2j_2{left:352px;top:3633px;}
+#t2k_2{left:266px;top:3726px;}
+#t2l_2{left:266px;top:3785px;}
+#t2m_2{left:266px;top:3844px;}
+#t2n_2{left:266px;top:3902px;}
+#t2o_2{left:266px;top:3961px;}
+#t2p_2{left:266px;top:4020px;}
+#t2q_2{left:266px;top:4078px;}
+#t2r_2{left:266px;top:4172px;}
+#t2s_2{left:266px;top:4230px;}
+#t2t_2{left:266px;top:4289px;}
+#t2u_2{left:266px;top:4382px;}
+#t2v_2{left:266px;top:4441px;}
+#t2w_2{left:1621px;top:4441px;}
+#t2x_2{left:266px;top:4500px;}
+#t2y_2{left:1515px;top:4500px;}
+#t2z_2{left:1561px;top:4500px;}
+#t30_2{left:266px;top:4558px;}
+#t31_2{left:266px;top:4617px;}
+#t32_2{left:266px;top:4710px;}
+#t33_2{left:266px;top:4804px;}
+#t34_2{left:1621px;top:4804px;}
+#t35_2{left:266px;top:4862px;}
+#t36_2{left:266px;top:4921px;}
+#t37_2{left:1820px;top:263px;}
+#t38_2{left:1820px;top:322px;}
+#t39_2{left:1820px;top:398px;}
+#t3a_2{left:1906px;top:398px;}
+#t3b_2{left:1906px;top:457px;}
+#t3c_2{left:1820px;top:515px;}
+#t3d_2{left:1906px;top:515px;}
+#t3e_2{left:1906px;top:574px;}
+#t3f_2{left:1906px;top:633px;}
+#t3g_2{left:1820px;top:708px;}
+#t3h_2{left:1820px;top:767px;}
+#t3i_2{left:1820px;top:860px;}
+#t3j_2{left:1820px;top:954px;}
+#t3k_2{left:1820px;top:1012px;}
+#t3l_2{left:2238px;top:1012px;}
+#t3m_2{left:2480px;top:1012px;}
+#t3n_2{left:1820px;top:1071px;}
+#t3o_2{left:1820px;top:1130px;}
+#t3p_2{left:1820px;top:1188px;}
+#t3q_2{left:1820px;top:1247px;}
+#t3r_2{left:1820px;top:1340px;}
+#t3s_2{left:1820px;top:1434px;}
+#t3t_2{left:1906px;top:1434px;}
+#t3u_2{left:2106px;top:1434px;}
+#t3v_2{left:1855px;top:4676px;}
+#t3w_2{left:2055px;top:4683px;}
+#t3x_2{left:2097px;top:4676px;}
+#t3y_2{left:1855px;top:4791px;}
+#t3z_2{left:2367px;top:4791px;}
+#t40_2{left:1855px;top:4840px;}
+#t41_2{left:2795px;top:4929px;}
+#t42_2{left:2344px;top:1531px;}
+#t43_2{left:2346px;top:1624px;}
+#t44_2{left:2499px;top:1624px;}
+#t45_2{left:2536px;top:1624px;}
+#t46_2{left:2332px;top:1683px;}
+#t47_2{left:2369px;top:2497px;}
+#t48_2{left:2508px;top:2497px;}
+#t49_2{left:2407px;top:2556px;}
+#t4a_2{left:2346px;top:2658px;}
+#t4b_2{left:2499px;top:2658px;}
+#t4c_2{left:2536px;top:2658px;}
+#t4d_2{left:2332px;top:2717px;}
+#t4e_2{left:2428px;top:2834px;}
+#t4f_2{left:2353px;top:2951px;}
+#t4g_2{left:2492px;top:2951px;}
+#t4h_2{left:2529px;top:2951px;}
+#t4i_2{left:2362px;top:3010px;}
+#t4j_2{left:2356px;top:3069px;}
+#t4k_2{left:2369px;top:3694px;}
+#t4l_2{left:2508px;top:3694px;}
+#t4m_2{left:2407px;top:3752px;}
+#t4n_2{left:2369px;top:3863px;}
+#t4o_2{left:2508px;top:3863px;}
+#t4p_2{left:2407px;top:3922px;}
+#t4q_2{left:2637px;top:1531px;}
+#t4r_2{left:2609px;top:1624px;}
+#t4s_2{left:2609px;top:1717px;}
+#t4t_2{left:2609px;top:1776px;letter-spacing:1px;}
+#t4u_2{left:2879px;top:1776px;letter-spacing:1px;}
+#t4v_2{left:3051px;top:1776px;}
+#t4w_2{left:2609px;top:1835px;}
+#t4x_2{left:2609px;top:1893px;}
+#t4y_2{left:2609px;top:1952px;}
+#t4z_2{left:2609px;top:2011px;}
+#t50_2{left:2609px;top:2069px;}
+#t51_2{left:3169px;top:2069px;}
+#t52_2{left:2609px;top:2128px;}
+#t53_2{left:2741px;top:2128px;}
+#t54_2{left:3166px;top:2128px;}
+#t55_2{left:2609px;top:2187px;}
+#t56_2{left:2609px;top:2245px;}
+#t57_2{left:2609px;top:2339px;}
+#t58_2{left:2609px;top:2397px;}
+#t59_2{left:2609px;top:2491px;}
+#t5a_2{left:2609px;top:2567px;}
+#t5b_2{left:2867px;top:2567px;}
+#t5c_2{left:2906px;top:2567px;}
+#t5d_2{left:2609px;top:2669px;}
+#t5e_2{left:2609px;top:2762px;}
+#t5f_2{left:3169px;top:2762px;}
+#t5g_2{left:2609px;top:2820px;}
+#t5h_2{left:2609px;top:2879px;}
+#t5i_2{left:2609px;top:2938px;}
+#t5j_2{left:2609px;top:2996px;}
+#t5k_2{left:2609px;top:3090px;}
+#t5l_2{left:2609px;top:3148px;}
+#t5m_2{left:2609px;top:3207px;}
+#t5n_2{left:2609px;top:3266px;}
+#t5o_2{left:3169px;top:3266px;}
+#t5p_2{left:2609px;top:3324px;}
+#t5q_2{left:2785px;top:3324px;}
+#t5r_2{left:2609px;top:3383px;}
+#t5s_2{left:2609px;top:3442px;}
+#t5t_2{left:3157px;top:3442px;}
+#t5u_2{left:2609px;top:3500px;}
+#t5v_2{left:3028px;top:3500px;}
+#t5w_2{left:3072px;top:3500px;}
+#t5x_2{left:2609px;top:3559px;}
+#t5y_2{left:2609px;top:3618px;}
+#t5z_2{left:2609px;top:3694px;}
+#t60_2{left:2609px;top:3770px;}
+#t61_2{left:2867px;top:3770px;}
+#t62_2{left:2906px;top:3770px;}
+#t63_2{left:2609px;top:3863px;}
+#t64_2{left:2609px;top:3956px;}
+#t65_2{left:2609px;top:4015px;}
+#t66_2{left:2609px;top:4074px;}
+#t67_2{left:3169px;top:4074px;}
+#t68_2{left:2609px;top:4132px;}
+#t69_2{left:2609px;top:4208px;}
+#t6a_2{left:3169px;top:4208px;}
+#t6b_2{left:2609px;top:4267px;}
+#t6c_2{left:2609px;top:4343px;}
+#t6d_2{left:2609px;top:4402px;}
+#t6e_2{left:2609px;top:4460px;}
+#t6f_2{left:2609px;top:4519px;}
+#t6g_2{left:1908px;top:1531px;}
+#t6h_2{left:1841px;top:1624px;}
+#t6i_2{left:1841px;top:1683px;}
+#t6j_2{left:1841px;top:1741px;}
+#t6k_2{left:1853px;top:1741px;}
+#t6l_2{left:2029px;top:1741px;}
+#t6m_2{left:1841px;top:1800px;}
+#t6n_2{left:1841px;top:1859px;}
+#t6o_2{left:1853px;top:1859px;}
+#t6p_2{left:2135px;top:1859px;}
+#t6q_2{left:1841px;top:1917px;}
+#t6r_2{left:1841px;top:1976px;}
+#t6s_2{left:1853px;top:1976px;}
+#t6t_2{left:1841px;top:2035px;}
+#t6u_2{left:2037px;top:2035px;}
+#t6v_2{left:1841px;top:2093px;}
+#t6w_2{left:1841px;top:2152px;}
+#t6x_2{left:1853px;top:2152px;}
+#t6y_2{left:2194px;top:2152px;}
+#t6z_2{left:1841px;top:2211px;}
+#t70_2{left:2164px;top:2211px;}
+#t71_2{left:1841px;top:2658px;}
+#t72_2{left:1841px;top:2717px;}
+#t73_2{left:1841px;top:2775px;}
+#t74_2{left:1841px;top:2834px;}
+#t75_2{left:1853px;top:2834px;}
+#t76_2{left:1841px;top:2893px;}
+#t77_2{left:1841px;top:2951px;}
+#t78_2{left:1841px;top:3010px;}
+#t79_2{left:2058px;top:3010px;}
+#t7a_2{left:1841px;top:3870px;}
+#t7b_2{left:1841px;top:3928px;}
+#t7c_2{left:1841px;top:3987px;}
+#t7d_2{left:1853px;top:3987px;}
+#t7e_2{left:1841px;top:4046px;}
+#t7f_2{left:2086px;top:4046px;}
+
+.s1_2{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: FMHXWX-HelveticaNeueLTStd-Bd2;
+	color: rgb(0,0,0);
+}
+
+.s3_2{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: FMHXWX-HelveticaNeueLTStd-Lt2;
+	color: rgb(0,0,0);
+}
+
+.s8_2{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: MT-Extra2;
+	color: rgb(0,0,0);
+}
+
+.s2_2{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: JSVVAP-HelveticaNeueLTStd-Lt2;
+	color: rgb(0,0,0);
+}
+
+.s5_2{
+	FONT-SIZE: 42px;
+	FONT-FAMILY: FMHXWX-HelveticaNeueLTStd-Bd2;
+	color: rgb(0,0,0);
+}
+
+.s6_2{
+	FONT-SIZE: 21px;
+	FONT-FAMILY: FMHXWX-HelveticaNeueLTStd-Lt2;
+	color: rgb(0,0,0);
+}
+
+.s4_2{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: BGTZSF-HelveticaNeueLTStd-It2;
+	color: rgb(0,0,0);
+}
+
+.s7_2{
+	FONT-SIZE: 42px;
+	FONT-FAMILY: JSVVAP-HelveticaNeueLTStd-Lt2;
+	color: rgb(0,0,0);
+}
+
+</style>
+<!-- End inline CSS -->
+
+<!-- Begin embedded font definitions -->
+<style type="text/css" >
+
+@font-face {
+	font-family: FMHXWX-HelveticaNeueLTStd-Lt2;
+	src: url("2/fonts/FMHXWX-HelveticaNeueLTStd-Lt.otf");
+}
+
+@font-face {
+	font-family: MT-Extra2;
+	src: url("2/fonts/MT-Extra.otf");
+}
+
+@font-face {
+	font-family: FMHXWX-HelveticaNeueLTStd-Bd2;
+	src: url("2/fonts/FMHXWX-HelveticaNeueLTStd-Bd.otf");
+}
+
+@font-face {
+	font-family: JSVVAP-HelveticaNeueLTStd-Lt2;
+	src: url("2/fonts/JSVVAP-HelveticaNeueLTStd-Lt.otf");
+}
+
+@font-face {
+	font-family: BGTZSF-HelveticaNeueLTStd-It2;
+	src: url("2/fonts/BGTZSF-HelveticaNeueLTStd-It.otf");
+}
+
+</style>
+<!-- End embedded font definitions -->
+
+<!-- Begin text definitions (Positioned/styled in CSS) -->
+<div class="t">
+<div class="s1_2">
+<div id="t1_2">AMPLIGO </div>
+</div>
+<div class="s2_2">
+<div id="t2_2">/	2</div>
+<div id="t3_2">registered	products	from	these	classes	and	not	to	exceed	the	</div>
+<div id="t4_2">maximum	number	of	</div>
+</div>
+<div class="s1_2">
+<div id="t5_2">AMPLIGO</div>
+</div>
+<div class="s3_2">
+<div id="t6_2">applications per season as </div>
+<div id="t7_2">per the instructions under </div>
+</div>
+<div class="s1_2">
+<div id="t8_2">DIRECTIONS FOR USE</div>
+</div>
+<div class="s3_2">
+<div id="t9_2">on this </div>
+<div id="ta_2">label.</div>
+</div>
+<div class="s2_2">
+<div id="tb_2">2.	</div>
+<div id="tc_2">Monitor	 insect	 populations	 and	 apply	</div>
+</div>
+<div class="s1_2">
+<div id="td_2">AMPLIGO</div>
+</div>
+<div class="s3_2">
+<div id="te_2">according </div>
+</div>
+<div class="s2_2">
+<div id="tf_2">to	 the	 label	 instructions	 when	 locally	 determined	 economic	</div>
+<div id="tg_2">thresholds	are	reached.	It	is	recommended	that	two	to	three	</div>
+</div>
+<div class="s3_2">
+<div id="th_2">consecutive </div>
+</div>
+<div class="s1_2">
+<div id="ti_2">AMPLIGO</div>
+</div>
+<div class="s2_2">
+<div id="tj_2">applications	 are	 applied	 as	 a	 block	</div>
+<div id="tk_2">spray.	Follow	these	label	recommendations	precisely	for	the	</div>
+<div id="tl_2">dosage	rates,	spray	intervals	and	the	optimum	timing	to	apply	</div>
+</div>
+<div class="s1_2">
+<div id="tm_2">AMPLIGO</div>
+</div>
+<div class="s3_2">
+<div id="tn_2">.</div>
+</div>
+<div class="s1_2">
+<div id="to_2">For specific information on resistance management con-</div>
+<div id="tp_2">tact the registration holder of this product.</div>
+<div id="tq_2">4. PRODUCT PROPERTIES</div>
+<div id="tr_2">AMPLIGO </div>
+</div>
+<div class="s2_2">
+<div id="ts_2">is	 effective	 for	 the	 control	 of	 Lepidoptera</div>
+</div>
+<div class="s3_2">
+<div id="tt_2">larvae. </div>
+</div>
+<div class="s1_2">
+<div id="tu_2">AMPLIGO </div>
+</div>
+<div class="s2_2">
+<div id="tv_2">is	long-lasting	and	works	through	ingestion,	contact,	</div>
+<div id="tw_2">ovicidal	 and	 ovi-larvicidal	 activity.	</div>
+</div>
+<div class="s1_2">
+<div id="tx_2">AMPLIGO </div>
+</div>
+<div class="s2_2">
+<div id="ty_2">is	 effective	 against	</div>
+<div id="tz_2">Lepidoptera	 larvae	 resistant	 to	 organophosphates,	 pyrethroids	</div>
+<div id="t10_2">and	 insect	 growth	 regulators.	 After	</div>
+</div>
+<div class="s1_2">
+<div id="t11_2">AMPLIGO </div>
+</div>
+<div class="s3_2">
+<div id="t12_2">ingestion, larval </div>
+</div>
+<div class="s2_2">
+<div id="t13_2">feeding	stops	immediately	leading	to	death.</div>
+</div>
+<div class="s1_2">
+<div id="t14_2">5. </div>
+<div id="t15_2">DIRECTIONS FOR USE </div>
+</div>
+<div class="s2_2">
+<div id="t16_2">Use	only	as	directed.</div>
+<div id="t17_2">Thorough	 and	 even	 coverage	 of	 the	 crop	 is	 essential.	 Do	 not	</div>
+<div id="t18_2">apply	during	the	heat	of	the	day	or	if	the	plants	are	wet	or	if	rain	</div>
+</div>
+<div class="s3_2">
+<div id="t19_2">is imminent.</div>
+</div>
+<div class="s2_2">
+<div id="t1a_2">5.1			GENERAL	DIRECTIONS</div>
+</div>
+<div class="s1_2">
+<div id="t1b_2">Aerial Application: </div>
+<div id="t1c_2">Precautions: </div>
+</div>
+<div class="s2_2">
+<div id="t1d_2">Aerial	 application	 of	 this	 pro	duct	 on	</div>
+</div>
+<div class="s1_2">
+<div id="t1e_2">maize, </div>
+<div id="t1f_2">sweetcorn </div>
+</div>
+<div class="s3_2">
+<div id="t1g_2">and </div>
+</div>
+<div class="s1_2">
+<div id="t1h_2">grain sorghum </div>
+</div>
+<div class="s2_2">
+<div id="t1i_2">may	 only	 be	 done	 by	 a	 regi-</div>
+<div id="t1j_2">stered	 aerial	 application	 operator	 using	 a	 correctly	 calibrated,	</div>
+<div id="t1k_2">registered	 aircraft	 according	 to	 the	 instructions	 of	 SANS	 10118	</div>
+<div id="t1l_2">(Aerial	 Application	 of	 Agricultural	 Remedies).	 	 It	 is	 important	 to	</div>
+<div id="t1m_2">ensure	 that	 the	 spray	 mixture	 is	 distributed	 evenly	 over	 the	 tar</div>
+</div>
+<div class="s3_2">
+<div id="t1n_2">-</div>
+</div>
+<div class="s2_2">
+<div id="t1o_2">get	area	and	that	the	loss	of	spray	material	during	application	is	</div>
+<div id="t1p_2">restricted	to	a	minimum.		It	is	therefore	essential	that	the	following	</div>
+<div id="t1q_2">criteria	are	met:</div>
+<div id="t1r_2">a)	 Application	parameters:</div>
+</div>
+<div class="s3_2">
+<div id="t1s_2">- </div>
+</div>
+<div class="s1_2">
+<div id="t1t_2">Volume:</div>
+</div>
+<div class="s2_2">
+<div id="t1u_2">A	 minimum	 volume	 of	 30</div>
+</div>
+<div class="s3_2">
+<div id="t1v_2">litres per hectare is </div>
+<div id="t1w_2">re commended. </div>
+<div id="t1x_2">As this product has not been evaluated at a </div>
+<div id="t1y_2">reduced volume rate, the registration holder cannot guarantee </div>
+</div>
+<div class="s2_2">
+<div id="t1z_2">efficacy	or	be	held	responsible	for	any	adverse	effects	if	the	</div>
+<div id="t20_2">product	is	applied	aerially	at	a	lower	volume	rate	than	recom</div>
+</div>
+<div class="s3_2">
+<div id="t21_2">-</div>
+<div id="t22_2">mended above. </div>
+<div id="t23_2">- </div>
+</div>
+<div class="s1_2">
+<div id="t24_2">Droplet coverage: </div>
+</div>
+<div class="s2_2">
+<div id="t25_2">Droplet	coverage	of	25	-	30</div>
+</div>
+<div class="s3_2">
+<div id="t26_2">droplets per </div>
+<div id="t27_2">cm² must be recovered at the target.</div>
+<div id="t28_2">- </div>
+</div>
+<div class="s1_2">
+<div id="t29_2">Droplet size: </div>
+</div>
+<div class="s2_2">
+<div id="t2a_2">A	droplet	spectrum	with	a	VMD	of	280	-	300	</div>
+<div id="t2b_2">microns	is	recommended.		Ensure	that	the	production	of	fine	</div>
+<div id="t2c_2">droplets	 (less	 than	 150	 microns	 -	 high	 drift	 &	 evaporation	</div>
+<div id="t2d_2">potential)	is	restricted	to	a	minimum.</div>
+</div>
+<div class="s3_2">
+<div id="t2e_2">- </div>
+</div>
+<div class="s1_2">
+<div id="t2f_2">Flying height:</div>
+</div>
+<div class="s2_2">
+<div id="t2g_2">The	 height	 of	 the	 spray	 boom	 should	 be	</div>
+<div id="t2h_2">maintained	at	3	-	4	metres	above	the	target.		Do	not	spray	</div>
+<div id="t2i_2">when	aircraft	is	in	a	climb,	at	the	top	or	during	a	dive,	or	when	</div>
+<div id="t2j_2">banking.</div>
+<div id="t2k_2">b)	 Equipment:</div>
+<div id="t2l_2">Use	 suitable	 atomising	 equipment	 (hydraulic	 nozzles	 or	 rotary	</div>
+<div id="t2m_2">atomisers)	that	will	produce	the	desired	droplet	size	and	coverage	</div>
+<div id="t2n_2">but	which	will	ensure	the	minimum	loss	of	product	either	through	</div>
+<div id="t2o_2">endodrift	(within	target	field)	or	exodrift	(outside	target	field).		The	</div>
+<div id="t2p_2">operator	must	use	a	set-up	that	will	produce	a	droplet	spectrum	</div>
+<div id="t2q_2">with	the	lowest	possible	relative	span.</div>
+<div id="t2r_2">All	nozzles	/	atomisers	should	be	positioned	within	the	inner	60%	</div>
+<div id="t2s_2">to	 75%	 of	 the	 wingspan	 to	 prevent	 droplets	 from	 entering	 the	</div>
+<div id="t2t_2">wingtip	vortices.</div>
+<div id="t2u_2">c)	 Meteorological	conditions:</div>
+<div id="t2v_2">The	difference	in	temperature	between	the	wet	and	dry	bulb	ther</div>
+</div>
+<div class="s3_2">
+<div id="t2w_2">-</div>
+</div>
+<div class="s2_2">
+<div id="t2x_2">mometers	of	a	whirling	hygrometer	should	not	exceed	8°C</div>
+</div>
+<div class="s4_2">
+<div id="t2y_2">. </div>
+</div>
+<div class="s2_2">
+<div id="t2z_2">The	</div>
+<div id="t30_2">addition	of	a	suitable	anti-evaporant	is	recommended	if	the	VMD	</div>
+<div id="t31_2">of	the	droplets	is	less	than	200	-	250	microns.</div>
+<div id="t32_2">Stop	spraying	if	the	wind	speed	exceeds	15	km/h.	</div>
+<div id="t33_2">Aerial	application	of	this	product	must	not	be	done	under	turbu</div>
+</div>
+<div class="s3_2">
+<div id="t34_2">-</div>
+</div>
+<div class="s2_2">
+<div id="t35_2">lent,	unstable	conditions	during	the	heat	of	the	day	when	rising	</div>
+<div id="t36_2">thermals	and	downdraughts	occur.		Also	note	that	the	application	</div>
+<div id="t37_2">of	this	product	under	temperature	inversion	conditions	(spraying	in	</div>
+<div id="t38_2">or	above	the	inversion	layer)	may	lead	to	the	following:</div>
+<div id="t39_2">•	</div>
+<div id="t3a_2">Reduced	efficacy	due	to	suspension	and	evaporation	of	small	</div>
+<div id="t3b_2">droplets	in	the	air	(inadequate	coverage)</div>
+<div id="t3c_2">•	</div>
+<div id="t3d_2">Damage	 to	 other	 sensitive	 crops	 and	 or	 non-target	 areas	</div>
+<div id="t3e_2">through	 the	 movement	 of	 the	 suspended	 spray	 cloud	 away	</div>
+<div id="t3f_2">from	the	target	field.	</div>
+</div>
+<div class="s1_2">
+<div id="t3g_2">Obtain assurance from the aerial operator that the above </div>
+<div id="t3h_2">requirements will be met.</div>
+</div>
+<div class="s2_2">
+<div id="t3i_2">5.2			MIXING	INSTRUCTIONS:</div>
+<div id="t3j_2">Fill	the	spray	tank	to	a	quarter	with	clean	water.	Measure	out	the	</div>
+<div id="t3k_2">required	quantity	of	</div>
+</div>
+<div class="s1_2">
+<div id="t3l_2">AMPLIGO </div>
+</div>
+<div class="s2_2">
+<div id="t3m_2">and	add	to	the	tank.	Fill	spray	tank	</div>
+<div id="t3n_2">with	water	while	maintaining	agitation	to	ensure	thorough	mixing.	</div>
+<div id="t3o_2">Maintain	 agitation	 during	 spraying.	 Use	 the	 prepared	 mixture	</div>
+<div id="t3p_2">immediately.	Do	not	prepare	more	spray	mixture	than	is	needed	</div>
+<div id="t3q_2">for	immediate	application.	Do	not	allow	to	stand	overnight.	</div>
+<div id="t3r_2">5.3			APPLICATION	RATES	</div>
+<div id="t3s_2">•	</div>
+</div>
+<div class="s1_2">
+<div id="t3t_2">Do NOT</div>
+</div>
+<div class="s2_2">
+<div id="t3u_2">apply	when	bees	are	active.</div>
+</div>
+<div class="s5_2">
+<div id="t3v_2">AMPLIGO</div>
+</div>
+<div class="s6_2">
+<div id="t3w_2">®</div>
+</div>
+<div class="s7_2">
+<div id="t3x_2">=		Registered	Trade	Mark	of	a	Syngenta	Group	Company.</div>
+</div>
+<div class="s5_2">
+<div id="t3y_2">© SYNGENTA AG, 2000. </div>
+</div>
+<div class="s7_2">
+<div id="t3z_2">Copyright	of	this	document	is	reserved.	All	</div>
+<div id="t40_2">unauthorised	reproduction	is	forbidden.</div>
+<div id="t41_2">SA	Reg:	2012-10-25</div>
+</div>
+<div class="s1_2">
+<div id="t42_2">DOSAGE</div>
+</div>
+<div class="s2_2">
+<div id="t43_2">1,08	m</div>
+</div>
+<div class="s8_2">
+<div id="t44_2">l</div>
+</div>
+<div class="s2_2">
+<div id="t45_2">/	</div>
+<div id="t46_2">100	m	row</div>
+<div id="t47_2">120	m</div>
+</div>
+<div class="s8_2">
+<div id="t48_2">l</div>
+</div>
+<div class="s2_2">
+<div id="t49_2">/	ha	</div>
+<div id="t4a_2">1,08	m</div>
+</div>
+<div class="s8_2">
+<div id="t4b_2">l</div>
+</div>
+<div class="s2_2">
+<div id="t4c_2">/	</div>
+<div id="t4d_2">100	m	row</div>
+</div>
+<div class="s3_2">
+<div id="t4e_2">or</div>
+</div>
+<div class="s2_2">
+<div id="t4f_2">120	m</div>
+</div>
+<div class="s8_2">
+<div id="t4g_2">l</div>
+</div>
+<div class="s2_2">
+<div id="t4h_2">/	</div>
+<div id="t4i_2">ha	in	90	</div>
+<div id="t4j_2">cm	rows</div>
+<div id="t4k_2">120	m</div>
+</div>
+<div class="s8_2">
+<div id="t4l_2">l</div>
+</div>
+<div class="s2_2">
+<div id="t4m_2">/	ha</div>
+<div id="t4n_2">100	m</div>
+</div>
+<div class="s8_2">
+<div id="t4o_2">l</div>
+</div>
+<div class="s2_2">
+<div id="t4p_2">/	ha</div>
+</div>
+<div class="s1_2">
+<div id="t4q_2">RECOMMENDATIONS</div>
+<div id="t4r_2">Ground application:</div>
+</div>
+<div class="s2_2">
+<div id="t4s_2">Apply	 before	 pests	 reach	</div>
+</div>
+<div class="s3_2">
+<div id="t4t_2">damaging </div>
+<div id="t4u_2">levels </div>
+<div id="t4v_2">based </div>
+<div id="t4w_2">on economic thresholds. </div>
+</div>
+<div class="s2_2">
+<div id="t4x_2">Scout	 fields	 and	 repeat	</div>
+<div id="t4y_2">sprays	 if	 populations	 start	</div>
+<div id="t4z_2">to	rebuild,	with	a	minimum	</div>
+<div id="t50_2">of	7	days	between	applica</div>
+</div>
+<div class="s3_2">
+<div id="t51_2">-</div>
+<div id="t52_2">tions. </div>
+</div>
+<div class="s2_2">
+<div id="t53_2">A	minimum	of	2	-	4	</div>
+</div>
+<div class="s8_2">
+<div id="t54_2">l</div>
+</div>
+<div class="s2_2">
+<div id="t55_2">spray	mixture	/	100	m	row	</div>
+</div>
+<div class="s3_2">
+<div id="t56_2">must be applied.</div>
+</div>
+<div class="s2_2">
+<div id="t57_2">Do	 not	 make	 more	 than	</div>
+<div id="t58_2">3	applications	per	season.</div>
+</div>
+<div class="s1_2">
+<div id="t59_2">Aerial application:</div>
+</div>
+<div class="s2_2">
+<div id="t5a_2">Apply	in	30	</div>
+</div>
+<div class="s8_2">
+<div id="t5b_2">l</div>
+</div>
+<div class="s2_2">
+<div id="t5c_2">water	/	ha.</div>
+</div>
+<div class="s1_2">
+<div id="t5d_2">Ground application:</div>
+</div>
+<div class="s2_2">
+<div id="t5e_2">Apply	at	the	first	sign	of	infes</div>
+</div>
+<div class="s3_2">
+<div id="t5f_2">-</div>
+</div>
+<div class="s2_2">
+<div id="t5g_2">tation	and	no	later	than	when	</div>
+<div id="t5h_2">10%	of	the	plants	show	shot	</div>
+<div id="t5i_2">hole	damage.	Spray	directly	</div>
+<div id="t5j_2">into	the	funnels.	</div>
+<div id="t5k_2">Apply	 a	 follow-up	 spray	</div>
+<div id="t5l_2">shortly	before	tasseling,	or	</div>
+<div id="t5m_2">with	the	second	moth	flight	</div>
+<div id="t5n_2">at	 the	 first	 sign	 of	 infes</div>
+</div>
+<div class="s3_2">
+<div id="t5o_2">-</div>
+<div id="t5p_2">tation </div>
+<div id="t5q_2">and no later than </div>
+</div>
+<div class="s2_2">
+<div id="t5r_2">when	 10%	 of	 the	 plants	</div>
+<div id="t5s_2">show	shot	hole	damage.	</div>
+</div>
+<div class="s3_2">
+<div id="t5t_2">A </div>
+</div>
+<div class="s2_2">
+<div id="t5u_2">minimum	 of	 2	 -	 4	</div>
+</div>
+<div class="s8_2">
+<div id="t5v_2">l</div>
+</div>
+<div class="s2_2">
+<div id="t5w_2">spray	</div>
+<div id="t5x_2">mixture	 /	 100	 m	 row	 must	</div>
+</div>
+<div class="s3_2">
+<div id="t5y_2">be applied.</div>
+</div>
+<div class="s1_2">
+<div id="t5z_2">Aerial application:</div>
+</div>
+<div class="s2_2">
+<div id="t60_2">Apply	in	30	</div>
+</div>
+<div class="s8_2">
+<div id="t61_2">l</div>
+</div>
+<div class="s2_2">
+<div id="t62_2">water	/	ha.</div>
+</div>
+<div class="s1_2">
+<div id="t63_2">Ground application:</div>
+</div>
+<div class="s2_2">
+<div id="t64_2">Apply	 as	 soon	 as	 the	 pre-</div>
+<div id="t65_2">sence	of	moths	is	noticed.	</div>
+<div id="t66_2">Apply	in	a	7	-14	day	inter</div>
+</div>
+<div class="s3_2">
+<div id="t67_2">-</div>
+<div id="t68_2">val programme. </div>
+</div>
+<div class="s2_2">
+<div id="t69_2">Do	 not	 exceed	 3	 applica</div>
+</div>
+<div class="s3_2">
+<div id="t6a_2">-</div>
+</div>
+<div class="s2_2">
+<div id="t6b_2">tions	per	crop	cycle.</div>
+<div id="t6c_2">If	 re-infestation	 occurs,	 do	</div>
+<div id="t6d_2">not	 use	 related	 chemistry.	</div>
+<div id="t6e_2">Use	 products	 with	 a	 diffe-</div>
+<div id="t6f_2">rent	mode	of	action.</div>
+</div>
+<div class="s1_2">
+<div id="t6g_2">CROP / PEST</div>
+<div id="t6h_2">GRAIN SORGHUM</div>
+<div id="t6i_2">Cutworms </div>
+</div>
+<div class="s2_2">
+<div id="t6j_2">(</div>
+</div>
+<div class="s4_2">
+<div id="t6k_2">Agrotis</div>
+</div>
+<div class="s2_2">
+<div id="t6l_2">spp.)</div>
+</div>
+<div class="s1_2">
+<div id="t6m_2">Armyworms</div>
+</div>
+<div class="s2_2">
+<div id="t6n_2">(</div>
+</div>
+<div class="s4_2">
+<div id="t6o_2">Spodoptera</div>
+</div>
+<div class="s2_2">
+<div id="t6p_2">spp.)</div>
+</div>
+<div class="s1_2">
+<div id="t6q_2">African bollworm</div>
+</div>
+<div class="s2_2">
+<div id="t6r_2">(</div>
+</div>
+<div class="s4_2">
+<div id="t6s_2">Helicoverpa </div>
+<div id="t6t_2">armigera</div>
+</div>
+<div class="s2_2">
+<div id="t6u_2">)</div>
+</div>
+<div class="s1_2">
+<div id="t6v_2">Maize stalk borers</div>
+</div>
+<div class="s2_2">
+<div id="t6w_2">(</div>
+</div>
+<div class="s4_2">
+<div id="t6x_2">Busseola fusca</div>
+</div>
+<div class="s3_2">
+<div id="t6y_2">, </div>
+</div>
+<div class="s4_2">
+<div id="t6z_2">Chilo partellus</div>
+</div>
+<div class="s2_2">
+<div id="t70_2">)</div>
+</div>
+<div class="s1_2">
+<div id="t71_2">MAIZE AND </div>
+<div id="t72_2">SWEETCORN</div>
+<div id="t73_2">Maize stalk borers</div>
+</div>
+<div class="s2_2">
+<div id="t74_2">(</div>
+</div>
+<div class="s4_2">
+<div id="t75_2">Busseola fusca, </div>
+<div id="t76_2">Chilo partellus, </div>
+<div id="t77_2">Sesamia </div>
+<div id="t78_2">calamistis</div>
+</div>
+<div class="s2_2">
+<div id="t79_2">)	</div>
+</div>
+<div class="s1_2">
+<div id="t7a_2">POTATOES </div>
+<div id="t7b_2">Potato tuber moth </div>
+</div>
+<div class="s2_2">
+<div id="t7c_2">(</div>
+</div>
+<div class="s4_2">
+<div id="t7d_2">Phthorimaea </div>
+<div id="t7e_2">operculella</div>
+</div>
+<div class="s2_2">
+<div id="t7f_2">)</div>
+</div>
+</div>
+<!-- End text definitions -->
+
+<!-- Begin page background -->
+<div id="pg2Overlay" style="width:100%; height:100%; position:absolute; z-index:0; background-color:rgba(0,0,0,0);"></div>
+<div id="pg2"><img src="2/2.png" id="pdf2" style="width:909px; height:1286px; background-color:white;"/></div>
+
+<!-- End page background -->
+
+<!-- Begin page loading JS -->
+<script type="text/javascript">
+var f2 = [['t6_2',575],['t7_2',556],['t8_2',545],['t9_2',146],['tc_2',820],['tf_2',1301],['tj_2',778],['to_2',1373],['tp_2',999],['tq_2',658],['ts_2',947],['tw_2',721],['ty_2',410],['tz_2',1387],['t10_2',779],['t12_2',332],['t15_2',536],['t17_2',1387],['t19_2',252],['t1b_2',425],['t1d_2',846],['t1h_2',347],['t1i_2',635],['t1j_2',1387],['t1k_2',1387],['t1l_2',1387],['t1m_2',1355],['t1r_2',585],['t1u_2',578],['t1v_2',438],['t1w_2',321],['t1x_2',934],['t1y_2',1287],['t22_2',331],['t24_2',416],['t26_2',253],['t27_2',782],['t29_2',295],['t2c_2',1301],['t2f_2',322],['t2g_2',930],['t2k_2',326],['t2l_2',1387],['t2s_2',1387],['t2u_2',638],['t3d_2',1307],['t3e_2',1308],['t3g_2',1380],['t3h_2',594],['t3o_2',1393],['t3t_2',185],['t3y_2',496],['t4r_2',467],['t4s_2',591],['t4w_2',577],['t4x_2',591],['t4y_2',591],['t56_2',354],['t57_2',591],['t59_2',427],['t5d_2',467],['t5k_2',591],['t5n_2',560],['t5q_2',402],['t5r_2',591],['t5u_2',409],['t5x_2',591],['t5y_2',235],['t5z_2',427],['t63_2',467],['t64_2',578],['t68_2',336],['t69_2',559],['t6c_2',591],['t6d_2',591],['t6e_2',578],['t6g_2',310],['t6h_2',439],['t6q_2',411],['t6v_2',445],['t6x_2',340],['t6z_2',322],['t71_2',279],['t73_2',439],['t75_2',349],['t76_2',331],['t7b_2',440]];
+var c2 = 0;
+function fontAdjustments2(){;
+	if (c2<f2.length) {
+		adjustWordSpacing(f2[c2][0],f2[c2][1]);
+		c2++;
+		if (c2%10 == 0) {
+			setTimeout(function(){fontAdjustments2()},0);
+		} else {
+			fontAdjustments2();
+		}
+	}
+};
+function load2(){
+	var timeout = 100;
+	if (navigator.userAgent.match(/iPhone|iPad|iPod|Android/i)) timeout = 500;
+	setTimeout(fontAdjustments2,timeout);
+}
+</script>
+<!-- End page loading JS -->
+
+</div>
+
+</div>
+<div id="brand" style="margin:0 auto; width:94px; padding:5px; clear: both;">
+<a href="../../index.html">
+<img title="PDF to HTML5 Conversion by IDRsolutions" alt="PDF to HTML5 Conversion by IDRsolutions" style="border:0;" src="icons/logo.png" />
+</a>
+</div>
+<script type="text/javascript">
+	makeNavBar(2,2,909,1286,0);
+</script>
+</body>
+</html>

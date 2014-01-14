@@ -1,0 +1,718 @@
+<!DOCTYPE html >
+<html lang="en">
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+<meta charset="utf-8" />
+<title>AMPLIGO____Afr__2012_10_25 Page3</title>
+</head>
+
+<body style="background-color:#919191;">
+
+<style type="text/css">
+    body {
+        margin:0;
+    }
+
+    #nav button {
+        width: 100px;
+        height: 30px;
+        vertical-align: middle;
+    }
+
+    #nav select {
+        width: 100px;
+        height: 27px;
+        vertical-align: middle;
+    }
+
+</style>
+
+<script type="text/javascript">
+
+    var zoom = 1;
+    var width = 0;
+    var height = 0;
+    var curPg = 0;
+    var pgCount = 0;
+	var jpedal;
+	var type;
+
+    function makeNavBar(pageCount, curPage, w, h, t) {
+	
+		//type 0 = single pages
+		//type 1 = splitspreads
+
+        pgCount = pageCount;
+        curPg = curPage;
+        width = w;
+        height = h;
+		type = t;
+        var opt;
+
+        //Populate the goto dropdown with page numbers
+        var goBtn = d("goBtn");
+		
+		if (type == 1) {//splitspreads
+			jpedal = d("container" + curPage);
+			
+			opt = document.createElement('option');
+            opt.value = 1;
+            opt.innerHTML = "Page " + 1;
+			goBtn.appendChild(opt);
+			
+			for (var i = 2; i <= pgCount; i += 2) {
+			
+				opt = document.createElement('option');
+				opt.value = i;
+				var text;
+				if (i != pgCount || pgCount % 2 == 1) {
+					text = "Page " + i + "-" + (i+1);
+				} else {
+					text = "Page " + i;
+				}
+				opt.innerHTML = text;
+				goBtn.appendChild(opt);
+			}
+			
+			goBtn.selectedIndex = curPage/2;
+			
+		} else {
+			jpedal = d("jpedal");
+			
+			for (var i = 1; i <= pgCount; i++) {
+				opt = document.createElement('option');
+				opt.value = i;
+				opt.innerHTML = "Page " + i;
+				goBtn.appendChild(opt);
+			}
+			goBtn.selectedIndex = curPage - 1;
+		}
+		
+
+
+        jpedal.style.transformOrigin = "top left";
+        jpedal.style.webkitTransformOrigin = "top left";
+        jpedal.style.msTransformOrigin = "top left";
+        jpedal.style.mozTransformOrigin = "top left";
+        jpedal.style.oTransformOrigin = "top left";
+        jpedal.style.margin = "0";
+
+        d("container").style.width = width + "px";
+        d("container").style.height = height + "px";
+
+        var doc = document.URL;
+        var jumper = "?zoom=";
+        var jumIdx = doc.toString().indexOf(jumper);
+        var zm = parseFloat(doc.substr(jumIdx + jumper.length));
+		var zoomBtn = d("zoomBtn");
+		if (width > getWidth()) {
+			zoomBtn.options[1].text = "100%";
+			zoomBtn.options[2].text = "Fit Width (Reset)";
+		}
+
+        if (!isNaN(zm) && zm > 0 && zm != 1) {
+            zoom = zm;
+            updateZoom();
+        } else if (width > getWidth()) {
+			zoomBtn.selectedIndex = 2;
+			zoomUpdate();
+		}
+    }
+	
+	function getWidth() {
+		var w = 0;
+		if (self.innerHeight) {
+			w = self.innerWidth;
+		} else if (document.documentElement && document.documentElement.clientHeight) {
+			w = document.documentElement.clientWidth;
+		} else if (document.body) {
+			w = document.body.clientWidth;
+		}
+		return w;
+	}
+
+    function updateZoom() {
+        jpedal.style.transform = "scale(" + zoom + ")";
+        jpedal.style.WebkitTransform = "scale(" + zoom + ")";
+        jpedal.style.msTransform = "scale(" + zoom + ")";
+        jpedal.style.MozTransform = "scale(" + zoom + ")";
+        jpedal.style.OTransform = "scale(" + zoom + ")";
+        d("container").style.width = width * zoom + "px";
+        d("container").style.height = height * zoom + "px";
+
+        var percent = Math.floor(zoom*100) + "%";
+        d("zoomBtn").options[0].innerHTML = percent;
+        d("zoomBtn").selectedIndex = 0;
+    }
+
+    function zoomIn() {
+        zoom = zoom*1.2;
+        updateZoom();
+    }
+
+    function zoomUpdate() {
+        var index = d("zoomBtn").selectedIndex;
+
+        if (index == 0) {
+            //Always current. Do nothing
+        } else if (index == 1) {//Reset
+            zoom = 1;
+        } else if (index == 2) {//Fit Width
+            var winWidth = window.innerWidth;
+            zoom = (winWidth - 40) / width;
+        } else if (index == 3) {//Fit Height
+            var winHeight = window.innerHeight;
+            zoom = (winHeight - 60) / height;
+        } else if (index == 4) {//Fit Page
+            var winWidth = window.innerWidth;
+            var winHeight = window.innerHeight;
+            var wScale = (winWidth - 40) / width;
+            var hScale = (winHeight - 60) / height;
+
+            if (wScale > hScale) {
+                zoom = hScale;
+            } else {
+                zoom = wScale;
+            }
+        }
+
+        updateZoom();
+    }
+
+    function zoomOut() {
+        zoom = zoom/1.2;
+        updateZoom();
+    }
+
+    function goToPage() {
+		var pg;
+		if (type == 0) {
+			pg = d("goBtn").selectedIndex + 1;
+		} else {
+			pg = (d("goBtn").selectedIndex * 2) + 1;
+		}
+        if (pg != curPg) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(pg, pgCount);
+			} else {
+				link = getMagazinePageHref(pg, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function getPageHref(page, count) {
+        var iWithLeadingZeros = page.toString();
+        var leadingZerosNeeded = count.toString().length - iWithLeadingZeros.length;
+
+        if(page === 1) {
+            iWithLeadingZeros = "index"
+        } else {
+            for(var n = 0; n < leadingZerosNeeded; n ++) {
+                iWithLeadingZeros = "0" + iWithLeadingZeros;
+            }
+        }
+        return iWithLeadingZeros;
+    }
+	
+	function getMagazinePageHref(page, count) {
+		if(page === 1) return getPageHref(page, count);
+		else if(page % 2 === 0) {
+			if(page === count)
+				return getPageHref(page, count);
+			else
+				return getPageHref(page, count) + "-" + getPageHref(page + 1, count);
+			}
+				else {
+			return getPageHref(page-1, count) + "-" + getPageHref(page, count);
+		}
+	}
+
+    function next() {
+        if (curPg < pgCount) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(curPg + 1, pgCount);
+			} else {
+				if (pgCount % 2 != 0 && curPg + 1 == pgCount) return;
+				link = getMagazinePageHref(curPg + 2, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function prev() {
+        if (curPg > 1) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(curPg - 1, pgCount);
+			} else {
+				link = getMagazinePageHref(curPg - 1, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function d(id){
+        return document.getElementById(id);
+    }
+
+</script>
+
+<div id="nav" style="background-color:#919191; padding-top: 10px; text-align: center; position: fixed; width: 100%; height: 40px; z-index:999;">
+    <button onclick="prev()" id="prev">Prev &lt;&lt;</button>
+    <select id="goBtn" onchange="goToPage()">
+
+    </select>
+    <button onclick="next()" id="next" style="margin-right:30px;">&gt;&gt; Next</button>
+
+    <button onclick="zoomOut()" id="zoomOut">Zoom Out</button>
+    <select id="zoomBtn" onchange="zoomUpdate()">
+        <option value="0">100%</option>
+        <option value="1">100% (Reset)</option>
+        <option value="2">Fit Width</option>
+        <option value="3">Fit Height</option>
+        <option value="4">Fit Page</option>
+
+    </select>
+    <button onclick="zoomIn()" id="zoomIn">Zoom In</button>
+</div>
+<div style="position:relative; width: 100%; height: 50px;"></div>
+
+<div id="container" style="margin: 0 auto 10px;">
+</script>
+
+
+
+<div id="jpedal" style="position:relative; width: 909px; height: 1286px; overflow: hidden; margin: 0 auto; box-shadow: 0 2px 6px rgba(100, 100, 100, 0.5);">
+
+<!-- Begin shared CSS values -->
+<!--[if lt IE 9]><style type="text/css">.t div div{zoom: 25%;}</style><![endif]-->
+<style type="text/css" >
+.t {
+	position: absolute;
+	-webkit-transform-origin: top left;
+	-moz-transform-origin: top left;
+	-o-transform-origin: top left;
+	-ms-transform-origin: top left;
+	-webkit-transform: scale(0.25);
+	-moz-transform: scale(0.25);
+	-o-transform: scale(0.25);
+	-ms-transform: scale(0.25);
+	z-index: 1;
+}
+.t div div {
+	position:absolute;
+	white-space:nowrap;
+	overflow:visible;
+}
+</style>
+<!-- End shared CSS values -->
+
+<!-- Begin shared JS -->
+<script type="text/javascript">
+
+// Ensure that we're not replacing any onload events
+function addLoadEvent(func) {
+	var oldonload = window.onload;
+	if (typeof window.onload != 'function') {
+		window.onload = func;
+	} else {
+		window.onload = function() {
+			if (oldonload) {
+				oldonload();
+			}
+			func();
+		}
+	}
+}
+addLoadEvent(function(){load3();});
+
+function adjustWordSpacing(divName,actualWidth) {
+
+	var el = document.getElementById(divName);
+	var rawWidth=el.offsetWidth;
+	if(actualWidth>rawWidth){
+		var spacing= 0;
+		var s=spacing+'px';
+		el.style.wordSpacing = s;
+		rawWidth=el.offsetWidth;
+
+		var diff=rawWidth-actualWidth;
+		if(diff<0)
+			diff=-diff;
+		var newDiff=diff-1;
+
+		while (spacing<40 && (newDiff===diff || newDiff<diff)){
+
+			diff=newDiff;
+			spacing= spacing+1;
+
+			s=spacing+'px';
+			el.style.wordSpacing = s;
+
+			newDiff=el.offsetWidth-actualWidth;
+			if(newDiff<0)
+				newDiff=-newDiff;
+		}
+		if(diff<=newDiff)
+			spacing=spacing-1;
+		s=spacing+'px';
+		el.style.wordSpacing =s;
+	}
+}
+
+</script>
+<!-- End shared JS -->
+
+
+<!-- Begin inline CSS -->
+<style type="text/css" >
+
+#t1_3{left:1754px;top:165px;}
+#t2_3{left:1998px;top:165px;}
+#t3_3{left:2027px;top:605px;}
+#t4_3{left:2227px;top:612px;}
+#t5_3{left:2261px;top:605px;}
+#t6_3{left:2303px;top:605px;}
+#t7_3{left:2027px;top:656px;}
+#t8_3{left:2027px;top:810px;}
+#t9_3{left:2547px;top:810px;}
+#ta_3{left:3327px;top:810px;}
+#tb_3{left:2027px;top:862px;}
+#tc_3{left:2972px;top:973px;}
+#td_3{left:957px;top:294px;}
+#te_3{left:930px;top:412px;}
+#tf_3{left:1081px;top:412px;}
+#tg_3{left:1120px;top:412px;}
+#th_3{left:938px;top:470px;}
+#ti_3{left:1013px;top:588px;}
+#tj_3{left:937px;top:705px;}
+#tk_3{left:1074px;top:705px;}
+#tl_3{left:1113px;top:705px;}
+#tm_3{left:982px;top:764px;}
+#tn_3{left:973px;top:822px;}
+#to_3{left:1002px;top:881px;}
+#tp_3{left:954px;top:1585px;}
+#tq_3{left:1091px;top:1585px;}
+#tr_3{left:992px;top:1644px;}
+#ts_3{left:1315px;top:294px;}
+#tt_3{left:1178px;top:412px;}
+#tu_3{left:1178px;top:529px;}
+#tv_3{left:1178px;top:588px;}
+#tw_3{left:1770px;top:588px;}
+#tx_3{left:1178px;top:646px;}
+#ty_3{left:1178px;top:705px;}
+#tz_3{left:1178px;top:764px;}
+#t10_3{left:1178px;top:822px;}
+#t11_3{left:1178px;top:940px;}
+#t12_3{left:1315px;top:940px;}
+#t13_3{left:1460px;top:940px;}
+#t14_3{left:1570px;top:940px;}
+#t15_3{left:1694px;top:940px;}
+#t16_3{left:1178px;top:998px;}
+#t17_3{left:1178px;top:1057px;}
+#t18_3{left:1178px;top:1116px;}
+#t19_3{left:1770px;top:1116px;}
+#t1a_3{left:1178px;top:1174px;}
+#t1b_3{left:1178px;top:1233px;}
+#t1c_3{left:1178px;top:1292px;}
+#t1d_3{left:1296px;top:1292px;}
+#t1e_3{left:1178px;top:1350px;}
+#t1f_3{left:1226px;top:1350px;}
+#t1g_3{left:1178px;top:1409px;}
+#t1h_3{left:1178px;top:1585px;}
+#t1i_3{left:1178px;top:1702px;}
+#t1j_3{left:1489px;top:1702px;}
+#t1k_3{left:1526px;top:1702px;}
+#t1l_3{left:481px;top:294px;}
+#t1m_3{left:459px;top:412px;}
+#t1n_3{left:459px;top:470px;}
+#t1o_3{left:459px;top:529px;}
+#t1p_3{left:459px;top:588px;}
+#t1q_3{left:471px;top:588px;}
+#t1r_3{left:459px;top:646px;}
+#t1s_3{left:459px;top:705px;}
+#t1t_3{left:872px;top:705px;}
+
+.s1_3{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: GOOLFV-HelveticaNeueLTStd-Bd3;
+	color: rgb(0,0,0);
+}
+
+.s6_3{
+	FONT-SIZE: 42px;
+	FONT-FAMILY: GOOLFV-HelveticaNeueLTStd-Lt3;
+	color: rgb(0,0,0);
+}
+
+.s8_3{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: GOOLFV-HelveticaNeueLTStd-Lt3;
+	color: rgb(0,0,0);
+}
+
+.s9_3{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: FGEFRX-HelveticaNeueLTStd-It3;
+	color: rgb(0,0,0);
+}
+
+.s2_3{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: HWYRTT-HelveticaNeueLTStd-Lt3;
+	color: rgb(0,0,0);
+}
+
+.s3_3{
+	FONT-SIZE: 42px;
+	FONT-FAMILY: GOOLFV-HelveticaNeueLTStd-Bd3;
+	color: rgb(0,0,0);
+}
+
+.s4_3{
+	FONT-SIZE: 21px;
+	FONT-FAMILY: GOOLFV-HelveticaNeueLTStd-Lt3;
+	color: rgb(0,0,0);
+}
+
+.s7_3{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: MT-Extra3;
+	color: rgb(0,0,0);
+}
+
+.s5_3{
+	FONT-SIZE: 42px;
+	FONT-FAMILY: HWYRTT-HelveticaNeueLTStd-Lt3;
+	color: rgb(0,0,0);
+}
+
+</style>
+<!-- End inline CSS -->
+
+<!-- Begin embedded font definitions -->
+<style type="text/css" >
+
+@font-face {
+	font-family: FGEFRX-HelveticaNeueLTStd-It3;
+	src: url("3/fonts/FGEFRX-HelveticaNeueLTStd-It.otf");
+}
+
+@font-face {
+	font-family: MT-Extra3;
+	src: url("3/fonts/MT-Extra.otf");
+}
+
+@font-face {
+	font-family: HWYRTT-HelveticaNeueLTStd-Lt3;
+	src: url("3/fonts/HWYRTT-HelveticaNeueLTStd-Lt.otf");
+}
+
+@font-face {
+	font-family: GOOLFV-HelveticaNeueLTStd-Bd3;
+	src: url("3/fonts/GOOLFV-HelveticaNeueLTStd-Bd.otf");
+}
+
+@font-face {
+	font-family: GOOLFV-HelveticaNeueLTStd-Lt3;
+	src: url("3/fonts/GOOLFV-HelveticaNeueLTStd-Lt.otf");
+}
+
+</style>
+<!-- End embedded font definitions -->
+
+<!-- Begin text definitions (Positioned/styled in CSS) -->
+<div class="t">
+<div class="s1_3">
+<div id="t1_3">AMPLIGO </div>
+</div>
+<div class="s2_3">
+<div id="t2_3">/	3</div>
+</div>
+<div class="s3_3">
+<div id="t3_3">AMPLIGO</div>
+</div>
+<div class="s4_3">
+<div id="t4_3">®</div>
+</div>
+<div class="s3_3">
+<div id="t5_3">= </div>
+</div>
+<div class="s5_3">
+<div id="t6_3">‘n	Geregistreerde	Handelsmerk	van	‘n	Syngenta	Groep	</div>
+<div id="t7_3">Maatskappy.</div>
+</div>
+<div class="s3_3">
+<div id="t8_3">© SYNGENTA AG, 2000. </div>
+</div>
+<div class="s5_3">
+<div id="t9_3">Kopiereg	 van	 hierdie	 dokument	 is	 voorbe</div>
+</div>
+<div class="s6_3">
+<div id="ta_3">-</div>
+</div>
+<div class="s5_3">
+<div id="tb_3">hou.	Alle	ongemagtigde	vermeerdering	word	verbied.</div>
+<div id="tc_3">SA	Reg:	2012-10-25</div>
+</div>
+<div class="s1_3">
+<div id="td_3">DOSIS</div>
+</div>
+<div class="s2_3">
+<div id="te_3">1,08	m</div>
+</div>
+<div class="s7_3">
+<div id="tf_3">l</div>
+</div>
+<div class="s2_3">
+<div id="tg_3">/	</div>
+<div id="th_3">100	m	ry</div>
+<div id="ti_3">of</div>
+<div id="tj_3">120	m</div>
+</div>
+<div class="s7_3">
+<div id="tk_3">l</div>
+</div>
+<div class="s2_3">
+<div id="tl_3">/	</div>
+<div id="tm_3">ha	in</div>
+<div id="tn_3">90	cm	</div>
+</div>
+<div class="s8_3">
+<div id="to_3">rye</div>
+</div>
+<div class="s2_3">
+<div id="tp_3">120	m</div>
+</div>
+<div class="s7_3">
+<div id="tq_3">l</div>
+</div>
+<div class="s2_3">
+<div id="tr_3">/	ha</div>
+</div>
+<div class="s1_3">
+<div id="ts_3">OPMERKINGS</div>
+<div id="tt_3">Grondtoediening:</div>
+</div>
+<div class="s2_3">
+<div id="tu_3">Dien	toe	wanneer	die	eerste	</div>
+<div id="tv_3">tekens	 van	 besmetting	 ver</div>
+</div>
+<div class="s8_3">
+<div id="tw_3">-</div>
+</div>
+<div class="s2_3">
+<div id="tx_3">skyn	en	nie	later	as	wanneer	</div>
+<div id="ty_3">10%	 van	 die	 plante	 skade	</div>
+<div id="tz_3">wys.	 Rig	 bespuiting	 direk	 in	</div>
+<div id="t10_3">die	kelk	van	die	plant	in.</div>
+<div id="t11_3">Dien	</div>
+<div id="t12_3">weer	</div>
+<div id="t13_3">toe	</div>
+<div id="t14_3">kort	</div>
+<div id="t15_3">voor	</div>
+<div id="t16_3">pluim	stoot	of	met	die	tweede	</div>
+<div id="t17_3">mot	vlug	 wanneer	 die	 eerste	</div>
+<div id="t18_3">tekens	 van	 besmetting	 ver</div>
+</div>
+<div class="s8_3">
+<div id="t19_3">-</div>
+</div>
+<div class="s2_3">
+<div id="t1a_3">skyn	en	nie	later	as	wanneer	</div>
+<div id="t1b_3">10%	 van	 die	 plante	 skade	</div>
+</div>
+<div class="s8_3">
+<div id="t1c_3">wys. </div>
+</div>
+<div class="s2_3">
+<div id="t1d_3">‘n	 Minimum	 van	 2	 -	 4	</div>
+</div>
+<div class="s7_3">
+<div id="t1e_3">l</div>
+</div>
+<div class="s2_3">
+<div id="t1f_3">spuit	mengsel	 /	 100	 m	 ry	</div>
+<div id="t1g_3">moet	toegedien	word.</div>
+</div>
+<div class="s1_3">
+<div id="t1h_3">Lugtoediening:</div>
+</div>
+<div class="s2_3">
+<div id="t1i_3">Dien	toe	in	30	</div>
+</div>
+<div class="s7_3">
+<div id="t1j_3">l</div>
+</div>
+<div class="s2_3">
+<div id="t1k_3">water	/	ha.</div>
+</div>
+<div class="s1_3">
+<div id="t1l_3">GEWAS / PLAAG</div>
+<div id="t1m_3">MIELIES EN </div>
+<div id="t1n_3">SUIKERMIELIES</div>
+<div id="t1o_3">Stronkboorders</div>
+</div>
+<div class="s8_3">
+<div id="t1p_3">(</div>
+</div>
+<div class="s9_3">
+<div id="t1q_3">Busseola fusca, </div>
+<div id="t1r_3">Chilo partellus, </div>
+<div id="t1s_3">Sesamia calamistis</div>
+</div>
+<div class="s8_3">
+<div id="t1t_3">)</div>
+</div>
+</div>
+<!-- End text definitions -->
+
+<!-- Begin page background -->
+<div id="pg3Overlay" style="width:100%; height:100%; position:absolute; z-index:0; background-color:rgba(0,0,0,0);"></div>
+<div id="pg3"><img src="3/3.png" id="pdf3" style="width:909px; height:1286px; background-color:white;"/></div>
+
+<!-- End page background -->
+
+<!-- Begin page loading JS -->
+<script type="text/javascript">
+var f3 = [['t8_3',502],['t9_3',780],['tv_3',592],['ty_3',624],['tz_3',624],['t17_3',624],['t18_3',592],['t1b_3',624],['t1d_3',505],['t1f_3',575],['t1l_3',393],['t1m_3',280],['t1q_3',343],['t1r_3',325],['t1s_3',413]];
+var c3 = 0;
+function fontAdjustments3(){;
+	if (c3<f3.length) {
+		adjustWordSpacing(f3[c3][0],f3[c3][1]);
+		c3++;
+		if (c3%10 == 0) {
+			setTimeout(function(){fontAdjustments3()},0);
+		} else {
+			fontAdjustments3();
+		}
+	}
+};
+function load3(){
+	var timeout = 100;
+	if (navigator.userAgent.match(/iPhone|iPad|iPod|Android/i)) timeout = 500;
+	setTimeout(fontAdjustments3,timeout);
+}
+</script>
+<!-- End page loading JS -->
+
+</div>
+
+</div>
+<div id="brand" style="margin: 0 auto; width: 94px; padding: 5px; clear: both; float: left;">
+
+<a href="../../index.html">
+<img src="../../img/logo.png" alt=" HTML5 Conversion by Syntagm" width="630" height="140" style="border:0;" title="HTML5 Conversion by Syntagm" />
+</a>
+</div>
+<script type="text/javascript">
+	makeNavBar(3,3,909,1286,0);
+</script>
+</body>
+</html>

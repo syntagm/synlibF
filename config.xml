@@ -4,9 +4,9 @@
 <widget xmlns     = "http://www.w3.org/ns/widgets"
         xmlns:gap = "http://phonegap.com/ns/1.0"
         id        = "za.co.syntagm.synlibF" 
-        version   = "1.0.1">
+        version   = "2.8.1">
 
-    <name>Notifier</name>
+    <name>LabelLibrary</name>
 
     <description>
         Fungicides Label Library

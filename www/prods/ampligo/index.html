@@ -1,0 +1,1129 @@
+<!DOCTYPE html >
+<html lang="en">
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+<meta charset="utf-8" />
+<title>AMPLIGO____Eng__2012_10_25 Page1</title>
+</head>
+
+<body style="background-color:#919191;">
+
+<style type="text/css">
+    body {
+        margin:0;
+    }
+
+    #nav button {
+        width: 100px;
+        height: 30px;
+        vertical-align: middle;
+    }
+
+    #nav select {
+        width: 100px;
+        height: 27px;
+        vertical-align: middle;
+    }
+
+</style>
+
+<script type="text/javascript">
+
+    var zoom = 1;
+    var width = 0;
+    var height = 0;
+    var curPg = 0;
+    var pgCount = 0;
+	var jpedal;
+	var type;
+
+    function makeNavBar(pageCount, curPage, w, h, t) {
+	
+		//type 0 = single pages
+		//type 1 = splitspreads
+
+        pgCount = pageCount;
+        curPg = curPage;
+        width = w;
+        height = h;
+		type = t;
+        var opt;
+
+        //Populate the goto dropdown with page numbers
+        var goBtn = d("goBtn");
+		
+		if (type == 1) {//splitspreads
+			jpedal = d("container" + curPage);
+			
+			opt = document.createElement('option');
+            opt.value = 1;
+            opt.innerHTML = "Page " + 1;
+			goBtn.appendChild(opt);
+			
+			for (var i = 2; i <= pgCount; i += 2) {
+			
+				opt = document.createElement('option');
+				opt.value = i;
+				var text;
+				if (i != pgCount || pgCount % 2 == 1) {
+					text = "Page " + i + "-" + (i+1);
+				} else {
+					text = "Page " + i;
+				}
+				opt.innerHTML = text;
+				goBtn.appendChild(opt);
+			}
+			
+			goBtn.selectedIndex = curPage/2;
+			
+		} else {
+			jpedal = d("jpedal");
+			
+			for (var i = 1; i <= pgCount; i++) {
+				opt = document.createElement('option');
+				opt.value = i;
+				opt.innerHTML = "Page " + i;
+				goBtn.appendChild(opt);
+			}
+			goBtn.selectedIndex = curPage - 1;
+		}
+		
+
+
+        jpedal.style.transformOrigin = "top left";
+        jpedal.style.webkitTransformOrigin = "top left";
+        jpedal.style.msTransformOrigin = "top left";
+        jpedal.style.mozTransformOrigin = "top left";
+        jpedal.style.oTransformOrigin = "top left";
+        jpedal.style.margin = "0";
+
+        d("container").style.width = width + "px";
+        d("container").style.height = height + "px";
+
+        var doc = document.URL;
+        var jumper = "?zoom=";
+        var jumIdx = doc.toString().indexOf(jumper);
+        var zm = parseFloat(doc.substr(jumIdx + jumper.length));
+		var zoomBtn = d("zoomBtn");
+		if (width > getWidth()) {
+			zoomBtn.options[1].text = "100%";
+			zoomBtn.options[2].text = "Fit Width (Reset)";
+		}
+
+        if (!isNaN(zm) && zm > 0 && zm != 1) {
+            zoom = zm;
+            updateZoom();
+        } else if (width > getWidth()) {
+			zoomBtn.selectedIndex = 2;
+			zoomUpdate();
+		}
+    }
+	
+	function getWidth() {
+		var w = 0;
+		if (self.innerHeight) {
+			w = self.innerWidth;
+		} else if (document.documentElement && document.documentElement.clientHeight) {
+			w = document.documentElement.clientWidth;
+		} else if (document.body) {
+			w = document.body.clientWidth;
+		}
+		return w;
+	}
+
+    function updateZoom() {
+        jpedal.style.transform = "scale(" + zoom + ")";
+        jpedal.style.WebkitTransform = "scale(" + zoom + ")";
+        jpedal.style.msTransform = "scale(" + zoom + ")";
+        jpedal.style.MozTransform = "scale(" + zoom + ")";
+        jpedal.style.OTransform = "scale(" + zoom + ")";
+        d("container").style.width = width * zoom + "px";
+        d("container").style.height = height * zoom + "px";
+
+        var percent = Math.floor(zoom*100) + "%";
+        d("zoomBtn").options[0].innerHTML = percent;
+        d("zoomBtn").selectedIndex = 0;
+    }
+
+    function zoomIn() {
+        zoom = zoom*1.2;
+        updateZoom();
+    }
+
+    function zoomUpdate() {
+        var index = d("zoomBtn").selectedIndex;
+
+        if (index == 0) {
+            //Always current. Do nothing
+        } else if (index == 1) {//Reset
+            zoom = 1;
+        } else if (index == 2) {//Fit Width
+            var winWidth = window.innerWidth;
+            zoom = (winWidth - 40) / width;
+        } else if (index == 3) {//Fit Height
+            var winHeight = window.innerHeight;
+            zoom = (winHeight - 60) / height;
+        } else if (index == 4) {//Fit Page
+            var winWidth = window.innerWidth;
+            var winHeight = window.innerHeight;
+            var wScale = (winWidth - 40) / width;
+            var hScale = (winHeight - 60) / height;
+
+            if (wScale > hScale) {
+                zoom = hScale;
+            } else {
+                zoom = wScale;
+            }
+        }
+
+        updateZoom();
+    }
+
+    function zoomOut() {
+        zoom = zoom/1.2;
+        updateZoom();
+    }
+
+    function goToPage() {
+		var pg;
+		if (type == 0) {
+			pg = d("goBtn").selectedIndex + 1;
+		} else {
+			pg = (d("goBtn").selectedIndex * 2) + 1;
+		}
+        if (pg != curPg) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(pg, pgCount);
+			} else {
+				link = getMagazinePageHref(pg, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function getPageHref(page, count) {
+        var iWithLeadingZeros = page.toString();
+        var leadingZerosNeeded = count.toString().length - iWithLeadingZeros.length;
+
+        if(page === 1) {
+            iWithLeadingZeros = "index"
+        } else {
+            for(var n = 0; n < leadingZerosNeeded; n ++) {
+                iWithLeadingZeros = "0" + iWithLeadingZeros;
+            }
+        }
+        return iWithLeadingZeros;
+    }
+	
+	function getMagazinePageHref(page, count) {
+		if(page === 1) return getPageHref(page, count);
+		else if(page % 2 === 0) {
+			if(page === count)
+				return getPageHref(page, count);
+			else
+				return getPageHref(page, count) + "-" + getPageHref(page + 1, count);
+			}
+				else {
+			return getPageHref(page-1, count) + "-" + getPageHref(page, count);
+		}
+	}
+
+    function next() {
+        if (curPg < pgCount) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(curPg + 1, pgCount);
+			} else {
+				if (pgCount % 2 != 0 && curPg + 1 == pgCount) return;
+				link = getMagazinePageHref(curPg + 2, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function prev() {
+        if (curPg > 1) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(curPg - 1, pgCount);
+			} else {
+				link = getMagazinePageHref(curPg - 1, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function d(id){
+        return document.getElementById(id);
+    }
+
+</script>
+
+<div id="nav" style="background-color:#919191; padding-top: 10px; text-align: center; position: fixed; width: 100%; height: 40px; z-index:999;">
+    <button onclick="prev()" id="prev">Prev &lt;&lt;</button>
+    <select id="goBtn" onchange="goToPage()">
+
+    </select>
+    <button onclick="next()" id="next" style="margin-right:30px;">&gt;&gt; Next</button>
+
+    <button onclick="zoomOut()" id="zoomOut">Zoom Out</button>
+    <select id="zoomBtn" onchange="zoomUpdate()">
+        <option value="0">100%</option>
+        <option value="1">100% (Reset)</option>
+        <option value="2">Fit Width</option>
+        <option value="3">Fit Height</option>
+        <option value="4">Fit Page</option>
+
+    </select>
+    <button onclick="zoomIn()" id="zoomIn">Zoom In</button>
+</div>
+<div style="position:relative; width: 100%; height: 50px;"></div>
+
+<div id="container" style="margin: 0 auto 10px;">
+</script>
+
+
+
+<div id="jpedal" style="position:relative; width: 909px; height: 1286px; overflow: hidden; margin: 0 auto; box-shadow: 0 2px 6px rgba(100, 100, 100, 0.5);">
+
+<!-- Begin shared CSS values -->
+<!--[if lt IE 9]><style type="text/css">.t div div{zoom: 25%;}</style><![endif]-->
+<style type="text/css" >
+.t {
+	position: absolute;
+	-webkit-transform-origin: top left;
+	-moz-transform-origin: top left;
+	-o-transform-origin: top left;
+	-ms-transform-origin: top left;
+	-webkit-transform: scale(0.25);
+	-moz-transform: scale(0.25);
+	-o-transform: scale(0.25);
+	-ms-transform: scale(0.25);
+	z-index: 1;
+}
+.t div div {
+	position:absolute;
+	white-space:nowrap;
+	overflow:visible;
+}
+</style>
+<!-- End shared CSS values -->
+
+<!-- Begin shared JS -->
+<script type="text/javascript">
+
+// Ensure that we're not replacing any onload events
+function addLoadEvent(func) {
+	var oldonload = window.onload;
+	if (typeof window.onload != 'function') {
+		window.onload = func;
+	} else {
+		window.onload = function() {
+			if (oldonload) {
+				oldonload();
+			}
+			func();
+		}
+	}
+}
+addLoadEvent(function(){load1();});
+
+function adjustWordSpacing(divName,actualWidth) {
+
+	var el = document.getElementById(divName);
+	var rawWidth=el.offsetWidth;
+	if(actualWidth>rawWidth){
+		var spacing= 0;
+		var s=spacing+'px';
+		el.style.wordSpacing = s;
+		rawWidth=el.offsetWidth;
+
+		var diff=rawWidth-actualWidth;
+		if(diff<0)
+			diff=-diff;
+		var newDiff=diff-1;
+
+		while (spacing<40 && (newDiff===diff || newDiff<diff)){
+
+			diff=newDiff;
+			spacing= spacing+1;
+
+			s=spacing+'px';
+			el.style.wordSpacing = s;
+
+			newDiff=el.offsetWidth-actualWidth;
+			if(newDiff<0)
+				newDiff=-newDiff;
+		}
+		if(diff<=newDiff)
+			spacing=spacing-1;
+		s=spacing+'px';
+		el.style.wordSpacing =s;
+	}
+}
+
+</script>
+<!-- End shared JS -->
+
+
+<!-- Begin inline CSS -->
+<style type="text/css" >
+
+#t1_1{left:2084px;top:1573px;}
+#t2_1{left:1998px;top:1632px;}
+#t3_1{left:2084px;top:1632px;}
+#t4_1{left:3354px;top:1632px;}
+#t5_1{left:2084px;top:1690px;}
+#t6_1{left:1998px;top:1749px;}
+#t7_1{left:2084px;top:1749px;}
+#t8_1{left:2084px;top:1808px;}
+#t9_1{left:2084px;top:1866px;}
+#ta_1{left:2084px;top:1925px;}
+#tb_1{left:2084px;top:1984px;}
+#tc_1{left:2084px;top:2042px;}
+#td_1{left:3354px;top:2042px;}
+#te_1{left:2084px;top:2101px;}
+#tf_1{left:1998px;top:2218px;}
+#tg_1{left:1998px;top:2311px;}
+#th_1{left:1998px;top:2370px;}
+#ti_1{left:1998px;top:2455px;}
+#tj_1{left:2342px;top:2455px;}
+#tk_1{left:1998px;top:2513px;}
+#tl_1{left:1998px;top:2598px;}
+#tm_1{left:2304px;top:2598px;}
+#tn_1{left:1998px;top:2683px;}
+#to_1{left:2257px;top:2683px;}
+#tp_1{left:1998px;top:2767px;}
+#tq_1{left:2325px;top:2767px;}
+#tr_1{left:1998px;top:2826px;}
+#ts_1{left:1998px;top:2885px;}
+#tt_1{left:1998px;top:2969px;}
+#tu_1{left:2142px;top:2969px;}
+#tv_1{left:1998px;top:3028px;}
+#tw_1{left:1998px;top:3127px;}
+#tx_1{left:1998px;top:3220px;}
+#ty_1{left:1998px;top:3279px;}
+#tz_1{left:1998px;top:3337px;}
+#t10_1{left:1998px;top:3396px;}
+#t11_1{left:1998px;top:3455px;}
+#t12_1{left:1998px;top:3572px;}
+#t13_1{left:1998px;top:3683px;}
+#t14_1{left:2251px;top:3683px;}
+#t15_1{left:1998px;top:3741px;}
+#t16_1{left:3143px;top:3741px;}
+#t17_1{left:1998px;top:3800px;}
+#t18_1{left:1998px;top:3859px;}
+#t19_1{left:1998px;top:3917px;}
+#t1a_1{left:1998px;top:3976px;}
+#t1b_1{left:2247px;top:3976px;}
+#t1c_1{left:1998px;top:4035px;}
+#t1d_1{left:1998px;top:4128px;}
+#t1e_1{left:1998px;top:4204px;}
+#t1f_1{left:2084px;top:4204px;}
+#t1g_1{left:2084px;top:4262px;}
+#t1h_1{left:2084px;top:4321px;}
+#t1i_1{left:1998px;top:4380px;}
+#t1j_1{left:2084px;top:4380px;}
+#t1k_1{left:2095px;top:4438px;}
+#t1l_1{left:1998px;top:4532px;}
+#t1m_1{left:2825px;top:4532px;}
+#t1n_1{left:3064px;top:4532px;}
+#t1o_1{left:1998px;top:4590px;}
+#t1p_1{left:1998px;top:4649px;}
+#t1q_1{left:1998px;top:4742px;}
+#t1r_1{left:2084px;top:4742px;}
+#t1s_1{left:2745px;top:4742px;}
+#t1t_1{left:3004px;top:4742px;}
+#t1u_1{left:2084px;top:4801px;}
+#t1v_1{left:3354px;top:4801px;}
+#t1w_1{left:2084px;top:4860px;}
+#t1x_1{left:2084px;top:4918px;}
+#t1y_1{left:439px;top:1573px;}
+#t1z_1{left:439px;top:1690px;}
+#t20_1{left:948px;top:1690px;}
+#t21_1{left:439px;top:1749px;}
+#t22_1{left:439px;top:1866px;}
+#t23_1{left:768px;top:1866px;}
+#t24_1{left:1690px;top:1866px;}
+#t25_1{left:439px;top:1925px;}
+#t26_1{left:716px;top:1925px;}
+#t27_1{left:1665px;top:1925px;}
+#t28_1{left:439px;top:1984px;}
+#t29_1{left:878px;top:1984px;}
+#t2a_1{left:1637px;top:1984px;}
+#t2b_1{left:439px;top:2042px;}
+#t2c_1{left:606px;top:2042px;}
+#t2d_1{left:1637px;top:2042px;}
+#t2e_1{left:439px;top:2160px;}
+#t2f_1{left:525px;top:2160px;}
+#t2g_1{left:439px;top:2218px;}
+#t2h_1{left:525px;top:2218px;}
+#t2i_1{left:439px;top:2277px;}
+#t2j_1{left:525px;top:2277px;}
+#t2k_1{left:1795px;top:2277px;}
+#t2l_1{left:525px;top:2336px;}
+#t2m_1{left:439px;top:2394px;}
+#t2n_1{left:525px;top:2394px;}
+#t2o_1{left:439px;top:2453px;}
+#t2p_1{left:525px;top:2453px;}
+#t2q_1{left:439px;top:2512px;}
+#t2r_1{left:525px;top:2512px;}
+#t2s_1{left:525px;top:2570px;}
+#t2t_1{left:439px;top:2629px;}
+#t2u_1{left:525px;top:2629px;}
+#t2v_1{left:525px;top:2688px;}
+#t2w_1{left:439px;top:2746px;}
+#t2x_1{left:525px;top:2746px;}
+#t2y_1{left:1795px;top:2746px;}
+#t2z_1{left:525px;top:2805px;}
+#t30_1{left:439px;top:2864px;}
+#t31_1{left:525px;top:2864px;}
+#t32_1{left:439px;top:2922px;}
+#t33_1{left:525px;top:2922px;}
+#t34_1{left:525px;top:2981px;}
+#t35_1{left:439px;top:3040px;}
+#t36_1{left:525px;top:3040px;}
+#t37_1{left:588px;top:3040px;}
+#t38_1{left:606px;top:3040px;}
+#t39_1{left:786px;top:3040px;}
+#t3a_1{left:525px;top:3098px;}
+#t3b_1{left:474px;top:3216px;}
+#t3c_1{left:474px;top:3274px;}
+#t3d_1{left:474px;top:3333px;}
+#t3e_1{left:474px;top:3392px;}
+#t3f_1{left:474px;top:3450px;}
+#t3g_1{left:474px;top:3509px;}
+#t3h_1{left:474px;top:3568px;}
+#t3i_1{left:474px;top:3626px;}
+#t3j_1{left:474px;top:3685px;}
+#t3k_1{left:474px;top:3744px;}
+#t3l_1{left:474px;top:3802px;}
+#t3m_1{left:474px;top:3861px;}
+#t3n_1{left:474px;top:3920px;}
+#t3o_1{left:474px;top:3978px;}
+#t3p_1{left:474px;top:4037px;}
+#t3q_1{left:474px;top:4096px;}
+#t3r_1{left:439px;top:4213px;}
+#t3s_1{left:439px;top:4330px;}
+#t3t_1{left:525px;top:4330px;}
+#t3u_1{left:439px;top:4389px;}
+#t3v_1{left:525px;top:4389px;}
+#t3w_1{left:439px;top:4448px;}
+#t3x_1{left:525px;top:4448px;}
+#t3y_1{left:439px;top:4506px;}
+#t3z_1{left:525px;top:4506px;}
+#t40_1{left:439px;top:4565px;}
+#t41_1{left:525px;top:4565px;}
+#t42_1{left:525px;top:4624px;}
+#t43_1{left:439px;top:4682px;}
+#t44_1{left:525px;top:4682px;}
+#t45_1{left:1795px;top:4682px;}
+#t46_1{left:525px;top:4741px;}
+#t47_1{left:439px;top:4800px;}
+#t48_1{left:525px;top:4800px;}
+#t49_1{left:525px;top:4858px;}
+#t4a_1{left:439px;top:4917px;}
+#t4b_1{left:525px;top:4917px;}
+#t4c_1{left:1110px;top:103px;}
+#t4d_1{left:472px;top:1220px;}
+#t4e_1{left:472px;top:1242px;}
+#t4f_1{left:472px;top:1264px;}
+#t4g_1{left:472px;top:821px;}
+#t4h_1{left:472px;top:865px;}
+#t4i_1{left:1194px;top:865px;}
+#t4j_1{left:1318px;top:865px;}
+#t4k_1{left:1426px;top:865px;}
+#t4l_1{left:472px;top:909px;}
+#t4m_1{left:834px;top:909px;}
+#t4n_1{left:472px;top:953px;}
+#t4o_1{left:1043px;top:953px;}
+#t4p_1{left:1346px;top:953px;}
+#t4q_1{left:1432px;top:953px;}
+#t4r_1{left:472px;top:1087px;}
+#t4s_1{left:1066px;top:643px;}
+#t4t_1{left:1191px;top:643px;}
+#t4u_1{left:1294px;top:643px;}
+#t4v_1{left:1734px;top:643px;}
+#t4w_1{left:1898px;top:640px;}
+#t4x_1{left:2208px;top:640px;}
+#t4y_1{left:2362px;top:640px;}
+#t4z_1{left:1531px;top:705px;}
+#t50_1{left:1531px;top:754px;}
+#t51_1{left:1531px;top:803px;}
+#t52_1{left:1531px;top:851px;}
+#t53_1{left:1531px;top:900px;}
+#t54_1{left:1531px;top:984px;}
+#t55_1{left:1531px;top:1033px;}
+#t56_1{left:1531px;top:1082px;}
+#t57_1{left:1531px;top:1131px;}
+#t58_1{left:1531px;top:1179px;}
+#t59_1{left:2514px;top:992px;}
+#t5a_1{left:2514px;top:1032px;}
+#t5b_1{left:2514px;top:1072px;}
+#t5c_1{left:2514px;top:1113px;}
+#t5d_1{left:2514px;top:1153px;}
+#t5e_1{left:2514px;top:1193px;}
+#t5f_1{left:2514px;top:714px;}
+#t5g_1{left:2514px;top:754px;}
+#t5h_1{left:2514px;top:794px;}
+#t5i_1{left:2514px;top:875px;}
+#t5j_1{left:1531px;top:1283px;}
+#t5k_1{left:2314px;top:1283px;}
+#t5l_1{left:1832px;top:1435px;}
+#t5m_1{left:1831px;top:1476px;}
+#t5n_1{left:470px;top:731px;}
+#t5o_1{left:727px;top:731px;}
+#t5p_1{left:918px;top:731px;}
+#t5q_1{left:1072px;top:731px;}
+
+.s1_1{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: FMHXWX-HelveticaNeueLTStd-Lt1;
+	color: rgb(0,0,0);
+}
+
+.s12_1{
+	FONT-SIZE: 33px;
+	FONT-FAMILY: JSVVAP-HelveticaNeueLTStd-Lt1;
+	color: rgb(0,0,0);
+}
+
+.s14_1{
+	FONT-SIZE: 42px;
+	FONT-FAMILY: FMHXWX-HelveticaNeueLTStd-Bd1;
+	color: rgb(0,0,0);
+}
+
+.s2_1{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: JSVVAP-HelveticaNeueLTStd-Lt1;
+	color: rgb(0,0,0);
+}
+
+.s4_1{
+	FONT-SIZE: 20px;
+	FONT-FAMILY: DWNLUB-HelveticaNeueLTStd-Roman1;
+	color: rgb(0,0,0);
+}
+
+.s6_1{
+	FONT-SIZE: 36px;
+	FONT-FAMILY: FMHXWX-HelveticaNeueLTStd-Bd1;
+	color: rgb(0,0,0);
+}
+
+.s7_1{
+	FONT-SIZE: 36px;
+	FONT-FAMILY: FMHXWX-HelveticaNeueLTStd-Lt1;
+	color: rgb(0,0,0);
+}
+
+.s3_1{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: FMHXWX-HelveticaNeueLTStd-Bd1;
+	color: rgb(0,0,0);
+}
+
+.s9_1{
+	FONT-SIZE: 30px;
+	FONT-FAMILY: FMHXWX-HelveticaNeueLTStd-Bd1;
+	color: rgb(0,0,0);
+}
+
+.s5_1{
+	FONT-SIZE: 36px;
+	FONT-FAMILY: JSVVAP-HelveticaNeueLTStd-Lt1;
+	color: rgb(0,0,0);
+}
+
+.s11_1{
+	FONT-SIZE: 30px;
+	FONT-FAMILY: JSVVAP-HelveticaNeueLTStd-Lt1;
+	color: rgb(0,0,0);
+}
+
+.s10_1{
+	FONT-SIZE: 30px;
+	FONT-FAMILY: FMHXWX-HelveticaNeueLTStd-Lt1;
+	color: rgb(0,0,0);
+}
+
+.s8_1{
+	FONT-SIZE: 36px;
+	FONT-FAMILY: MT-Extra1;
+	color: rgb(0,0,0);
+}
+
+.s13_1{
+	FONT-SIZE: 33px;
+	FONT-FAMILY: FMHXWX-HelveticaNeueLTStd-Bd1;
+	color: rgb(0,0,0);
+}
+
+</style>
+<!-- End inline CSS -->
+
+<!-- Begin embedded font definitions -->
+<style type="text/css" >
+
+@font-face {
+	font-family: FMHXWX-HelveticaNeueLTStd-Lt1;
+	src: url("index/fonts/FMHXWX-HelveticaNeueLTStd-Lt.otf");
+}
+
+@font-face {
+	font-family: MT-Extra1;
+	src: url("index/fonts/MT-Extra.otf");
+}
+
+@font-face {
+	font-family: FMHXWX-HelveticaNeueLTStd-Bd1;
+	src: url("index/fonts/FMHXWX-HelveticaNeueLTStd-Bd.otf");
+}
+
+@font-face {
+	font-family: JSVVAP-HelveticaNeueLTStd-Lt1;
+	src: url("index/fonts/JSVVAP-HelveticaNeueLTStd-Lt.otf");
+}
+
+@font-face {
+	font-family: DWNLUB-HelveticaNeueLTStd-Roman1;
+	src: url("index/fonts/DWNLUB-HelveticaNeueLTStd-Roman.otf");
+}
+
+</style>
+<!-- End embedded font definitions -->
+
+<!-- Begin text definitions (Positioned/styled in CSS) -->
+<div class="t">
+<div class="s1_1">
+<div id="t1_1">contaminate crops, grazing, rivers, dams and boreholes.</div>
+</div>
+<div class="s2_1">
+<div id="t2_1">•	</div>
+<div id="t3_1">Prevent	contamination	of	food,	feed,	drinking	water	and	eat</div>
+</div>
+<div class="s1_1">
+<div id="t4_1">-</div>
+<div id="t5_1">ing utensils.</div>
+</div>
+<div class="s2_1">
+<div id="t6_1">•	</div>
+<div id="t7_1">Invert	the	empty	container	over	the	spray	or	mixing	tank	and	</div>
+<div id="t8_1">allow	to	drain	for	at	least	30	seconds	after	the	flow	has	slowed	</div>
+<div id="t9_1">down	to	a	drip.	Thereafter	rinse	the	container	three	times	with	</div>
+<div id="ta_1">a	volume	of	water	equal	to	a	minimum	of	10	%	of	that	of	the	</div>
+<div id="tb_1">container.	Add	the	rinsings	to	the	contents	of	the	spray	tank	</div>
+<div id="tc_1">before	destroying	the	container.	Do	not	use	the	empty	con</div>
+</div>
+<div class="s1_1">
+<div id="td_1">-</div>
+</div>
+<div class="s2_1">
+<div id="te_1">tainer	for	any	other	purpose.</div>
+</div>
+<div class="s3_1">
+<div id="tf_1">FIRST AID</div>
+<div id="tg_1">If poisoning is suspected, stop work immediately and call a </div>
+<div id="th_1">physician. Show label to the physician. </div>
+<div id="ti_1">Skin contact:</div>
+</div>
+<div class="s2_1">
+<div id="tj_1">Remove	 contaminated	 clothing	 and	 thoroughly	</div>
+<div id="tk_1">wash	the	effected	parts	of	the	body	with	soap	and	water.</div>
+</div>
+<div class="s3_1">
+<div id="tl_1">Eye contact:</div>
+</div>
+<div class="s2_1">
+<div id="tm_1">Rinse	eyes	with	clean	water	for	several	minutes.</div>
+</div>
+<div class="s3_1">
+<div id="tn_1">Inhalation:</div>
+</div>
+<div class="s1_1">
+<div id="to_1">Move to clean air. </div>
+</div>
+<div class="s3_1">
+<div id="tp_1">If swallowed:</div>
+</div>
+<div class="s2_1">
+<div id="tq_1">Repeatedly	administer	medical	charcoal	in	plenty	</div>
+<div id="tr_1">of	 water.	 Seek	 medical	 advice	 immediately	 if	 a	 large	 volume	 of	</div>
+<div id="ts_1">concentrate	was	ingested.</div>
+</div>
+<div class="s3_1">
+<div id="tt_1">Note: </div>
+</div>
+<div class="s2_1">
+<div id="tu_1">Never	give	anything	to	an	unconscious	patient	and	never	</div>
+</div>
+<div class="s1_1">
+<div id="tv_1">induce vomiting.</div>
+</div>
+<div class="s3_1">
+<div id="tw_1">Antidote</div>
+</div>
+<div class="s2_1">
+<div id="tx_1">No	 specific	 antidote	 is	 known;	 apply	 symptomatic	 therapy.	 If	</div>
+<div id="ty_1">the	amount	of	chemical	is	judged	to	be	less	than	a	lethal	dose,	</div>
+<div id="tz_1">observe	 the	 patient	 and	 treat	 symptomatically.	 If	 gastric	 lavage	</div>
+<div id="t10_1">is	 considered	 necessary,	 prevent	 aspiration	 of	 gastric	 material.	</div>
+<div id="t11_1">Consider	administration	of	active	charcoal	and	a	laxative.</div>
+</div>
+<div class="s3_1">
+<div id="t12_1">3. RESISTANCE MANAGEMENT</div>
+<div id="t13_1">AMPLIGO</div>
+</div>
+<div class="s2_1">
+<div id="t14_1">is	 a	 group	 code	 3	 and	 28	 insecticide.	 	 Any	 insect	</div>
+<div id="t15_1">population	may	contain	individuals	naturally	resistant	to	</div>
+</div>
+<div class="s3_1">
+<div id="t16_1">AMPLIGO </div>
+</div>
+<div class="s2_1">
+<div id="t17_1">and	 other	 group	 code	 3	 and	 28	 insecticides.	 The	 resistant	</div>
+<div id="t18_1">individuals	can	eventually	dominate	the	insect	population	if	these	</div>
+<div id="t19_1">insecticides	 are	 used	 repeatedly	 and	 exclusively	 in	 programs.	</div>
+</div>
+<div class="s3_1">
+<div id="t1a_1">AMPLIGO </div>
+</div>
+<div class="s2_1">
+<div id="t1b_1">or	 any	 other	 group	 code	 3	 and	 28	 insecticides	 may	</div>
+</div>
+<div class="s1_1">
+<div id="t1c_1">not control these resistant insects. </div>
+</div>
+<div class="s2_1">
+<div id="t1d_1">To	delay	insecticide	resistance:</div>
+<div id="t1e_1">•	</div>
+<div id="t1f_1">Avoid	 exclusive	 repeated	 use	 of	 insecticides	 from	 the	 same	</div>
+<div id="t1g_1">insecticide	group	code.		Alternate	or	tank	mix	with	products	</div>
+<div id="t1h_1">from	different	insecticide	group	codes.</div>
+<div id="t1i_1">•	</div>
+<div id="t1j_1">I	ntegrate	other	control	methods	(chemical,	cultural,	biological)	</div>
+</div>
+<div class="s1_1">
+<div id="t1k_1">into insect control programs.</div>
+</div>
+<div class="s2_1">
+<div id="t1l_1">As	a	result	of	its	unique	mode	of	action,	</div>
+</div>
+<div class="s3_1">
+<div id="t1m_1">AMPLIGO</div>
+</div>
+<div class="s2_1">
+<div id="t1n_1">is	ideally	suited	</div>
+<div id="t1o_1">for	 applications	 where	 resistance	 management	 is	 important.	</div>
+<div id="t1p_1">These	guidelines	will	maximise	the	effective	life	of	the	product:	</div>
+<div id="t1q_1">1.	</div>
+<div id="t1r_1">Where	 appropriate,	 alternate	</div>
+</div>
+<div class="s3_1">
+<div id="t1s_1">AMPLIGO</div>
+</div>
+<div class="s2_1">
+<div id="t1t_1">with	 compounds	</div>
+<div id="t1u_1">from	 different	 chemical	 classes	 (oxadiazine,	 organophos</div>
+</div>
+<div class="s1_1">
+<div id="t1v_1">-</div>
+</div>
+<div class="s2_1">
+<div id="t1w_1">phate,	 neonicotinoid,	 spinosyn,	 diacylhydrazine	 or	 other	</div>
+<div id="t1x_1">insect	 growth	 regulators).	 We	 recommend	 alternation	 with	</div>
+</div>
+<div class="s3_1">
+<div id="t1y_1">1. WARNINGS</div>
+<div id="t1z_1">Withholding periods:</div>
+</div>
+<div class="s2_1">
+<div id="t20_1">(minimum	 number	 of	 days	 between	 last	</div>
+<div id="t21_1">application	and	harvest	or	grazing).</div>
+</div>
+<div class="s3_1">
+<div id="t22_1">SWEETCORN </div>
+</div>
+<div class="s1_1">
+<div id="t23_1">...................................................................</div>
+</div>
+<div class="s3_1">
+<div id="t24_1">1 day</div>
+<div id="t25_1">POTATOES </div>
+</div>
+<div class="s1_1">
+<div id="t26_1">.....................................................................</div>
+</div>
+<div class="s3_1">
+<div id="t27_1">3 days</div>
+<div id="t28_1">GRAIN SORGHUM </div>
+</div>
+<div class="s1_1">
+<div id="t29_1">.......................................................</div>
+</div>
+<div class="s3_1">
+<div id="t2a_1">14 days</div>
+<div id="t2b_1">MAIZE </div>
+</div>
+<div class="s1_1">
+<div id="t2c_1">...........................................................................</div>
+</div>
+<div class="s3_1">
+<div id="t2d_1">14 days</div>
+</div>
+<div class="s2_1">
+<div id="t2e_1">•	</div>
+<div id="t2f_1">Handle	with	care.</div>
+<div id="t2g_1">•	</div>
+<div id="t2h_1">Harmful	if	swallowed.</div>
+<div id="t2i_1">•	</div>
+<div id="t2j_1">May	cause	tingling/numbness	in	exposed	skin	areas	(paraes</div>
+</div>
+<div class="s1_1">
+<div id="t2k_1">-</div>
+</div>
+<div class="s2_1">
+<div id="t2l_1">thesia).</div>
+<div id="t2m_1">•	</div>
+<div id="t2n_1">Not	harmful	to	birds.</div>
+<div id="t2o_1">•	</div>
+<div id="t2p_1">Very	toxic	to	fish	and	aquatic	organisms.</div>
+<div id="t2q_1">•	</div>
+<div id="t2r_1">Toxic	to	bees	–	DO	NOT	spray	when	bees	are	active	or	on	</div>
+<div id="t2s_1">flowering	crops.</div>
+<div id="t2t_1">•	</div>
+<div id="t2u_1">Store	in	original	container,	away	from	sun	and	damp,	in	a	cool	</div>
+<div id="t2v_1">place,	away	from	food	and	feed.	Store	under	lock	and	key.</div>
+<div id="t2w_1">•	</div>
+<div id="t2x_1">Keep	out	of	reach	of	children,	uninformed	persons	and	ani</div>
+</div>
+<div class="s1_1">
+<div id="t2y_1">-</div>
+<div id="t2z_1">mals.</div>
+</div>
+<div class="s2_1">
+<div id="t30_1">•	</div>
+<div id="t31_1">Unprotected	workers	must	vacate	the	area	being	treated.</div>
+<div id="t32_1">•	</div>
+</div>
+<div class="s3_1">
+<div id="t33_1">In case of poisoning call a Doctor and make this label </div>
+<div id="t34_1">available to him.</div>
+</div>
+<div class="s2_1">
+<div id="t35_1">•	</div>
+</div>
+<div class="s3_1">
+<div id="t36_1">Re</div>
+</div>
+<div class="s1_1">
+<div id="t37_1">-</div>
+</div>
+<div class="s3_1">
+<div id="t38_1">entry:</div>
+</div>
+<div class="s2_1">
+<div id="t39_1">Do	 not	 enter	 treated	 area	 for	 24	 hours	 unless	</div>
+<div id="t3a_1">wearing	protective	clothing.</div>
+<div id="t3b_1">Although	 this	 remedy	 has	 been	 extensively	 tested	 under	 a	</div>
+<div id="t3c_1">large	 variety	 of	 conditions,	 the	 registration	 holder	 does	 not	</div>
+<div id="t3d_1">warrant	 that	 it	 will	 be	 efficacious	 under	 all	 conditions,	 since	</div>
+<div id="t3e_1">the	action	and	effect	thereof	may	be	affected	by	factors	such	</div>
+<div id="t3f_1">as	 abnormal	 soil,	 climatic	 and	 storage	 conditions,	 quality	</div>
+<div id="t3g_1">of	 dilution	 water,	 compatibility	 with	 other	 substances	 not	</div>
+<div id="t3h_1">indicated	 on	 the	 label	 and	 the	 occurrence	 of	 resistance	 of	 a	</div>
+<div id="t3i_1">pest	against	the	remedy	concerned	as	well	as	by	the	method,	</div>
+<div id="t3j_1">time	 and	 accuracy	 of	 application.	 The	 registration	 holder	</div>
+<div id="t3k_1">furthermore	 does	 not	 accept	 responsibility	 for	 damage	 to	</div>
+</div>
+<div class="s1_1">
+<div id="t3l_1">crops, vegetation, the environment or harm to man or animal </div>
+</div>
+<div class="s2_1">
+<div id="t3m_1">or	lack	of	performance	of	the	remedy	concerned	due	to	failure	</div>
+<div id="t3n_1">of	the	user	to	follow	the	label	instructions	or	to	the	occurrence	</div>
+<div id="t3o_1">of	 conditions,	 which	 could	 not	 have	 been	 foreseen	 in	 terms	</div>
+<div id="t3p_1">of	 the	 registration.	 Consult	 the	 supplier	 in	 the	 event	 of	 any	</div>
+<div id="t3q_1">uncertainty.</div>
+</div>
+<div class="s3_1">
+<div id="t3r_1">2. PRECAUTIONS</div>
+</div>
+<div class="s2_1">
+<div id="t3s_1">•	</div>
+<div id="t3t_1">Avoid	eye	and	skin	contact.</div>
+<div id="t3u_1">•	</div>
+<div id="t3v_1">Do	not	inhale	spray	mist.</div>
+<div id="t3w_1">•	</div>
+<div id="t3x_1">Wash	with	soap	and	water	immediately	after	use.</div>
+<div id="t3y_1">•	</div>
+<div id="t3z_1">Wash	contaminated	clothing	after	use.	Wash	yourself.</div>
+<div id="t40_1">•	</div>
+<div id="t41_1">Do	not	eat,	drink	or	smoke	while	mixing	or	applying	the	pro-</div>
+<div id="t42_1">duct	or	before	washing	hands	and	face.</div>
+<div id="t43_1">•	</div>
+<div id="t44_1">Wear	suitable	protective	clothing	when	handling	the	concen</div>
+</div>
+<div class="s1_1">
+<div id="t45_1">-</div>
+</div>
+<div class="s2_1">
+<div id="t46_1">trate	or	mixing	–	protective	gloves,	boots	and	face	shield.</div>
+<div id="t47_1">•	</div>
+<div id="t48_1">Avoid	excessive	drift	-	do	not	treat	if	wind	velocity	exceeds	2	</div>
+<div id="t49_1">meters	per	second	(7	km	per	hour).</div>
+<div id="t4a_1">•	</div>
+<div id="t4b_1">Clean	applicator	after	use.	Dispose	of	rinsate	where	it	will	not	</div>
+</div>
+<div class="s3_1">
+<div id="t4c_1">BEFORE USING THIS PRODUCT READ ENTIRE LABEL CAREFULLY</div>
+</div>
+<div class="s4_1">
+<div id="t4d_1">Product names marked ® or ™ , the ALLIANCE FRAME</div>
+<div id="t4e_1">the SYNGENTA Logo and the PURPOSE ICON </div>
+<div id="t4f_1">are Trademarks of a Syngenta Group Company</div>
+</div>
+<div class="s5_1">
+<div id="t4g_1">Aktiewe	bestanddele	/	Active	Ingredients:</div>
+</div>
+<div class="s6_1">
+<div id="t4h_1">Chloorantraniliprool / Chlorantraniliprole </div>
+</div>
+<div class="s7_1">
+<div id="t4i_1">...........</div>
+</div>
+<div class="s6_1">
+<div id="t4j_1">100 g/</div>
+</div>
+<div class="s8_1">
+<div id="t4k_1">l</div>
+</div>
+<div class="s6_1">
+<div id="t4l_1">Lambda-sihalotrien </div>
+<div id="t4m_1">(piretroïed) / </div>
+<div id="t4n_1">Lambda-cyhalothrin (pyrethroid) </div>
+</div>
+<div class="s7_1">
+<div id="t4o_1">............................ </div>
+</div>
+<div class="s6_1">
+<div id="t4p_1">50 g/</div>
+</div>
+<div class="s8_1">
+<div id="t4q_1">l</div>
+</div>
+<div class="s9_1">
+<div id="t4r_1">UN 3082</div>
+</div>
+<div class="s10_1">
+<div id="t4s_1">Reg. No. </div>
+</div>
+<div class="s9_1">
+<div id="t4t_1">L8685 </div>
+</div>
+<div class="s11_1">
+<div id="t4u_1">Act	/	Wet	No.	36	of	/	van	1947			</div>
+</div>
+<div class="s9_1">
+<div id="t4v_1">N-AR 1259 </div>
+</div>
+<div class="s12_1">
+<div id="t4w_1">(NAMIBIË/NAMIBIA)		</div>
+</div>
+<div class="s13_1">
+<div id="t4x_1">W130611</div>
+</div>
+<div class="s12_1">
+<div id="t4y_1">(Botswana)	</div>
+</div>
+<div class="s14_1">
+<div id="t4z_1">‘n Translaminêre, geënkapsuleerde suspen-</div>
+<div id="t50_1">sie vloeibare konsentraat insekdoder met </div>
+<div id="t51_1">kontak- en maagwerking vir die beheer </div>
+<div id="t52_1">van die insekplae soos gelys in aartappels, </div>
+<div id="t53_1">mielies, suikermielies en graansorghum.</div>
+<div id="t54_1">A translaminar, encapsulated suspension </div>
+<div id="t55_1">flowable concentrate insecticide with con-</div>
+<div id="t56_1">tact and stomach action for the control of </div>
+<div id="t57_1">the listed pests in potatoes, maize, sweet-</div>
+<div id="t58_1">corn and grain sorghum.</div>
+</div>
+<div class="s12_1">
+<div id="t59_1">Registration	holder	/	Registrasiehouer:</div>
+</div>
+<div class="s13_1">
+<div id="t5a_1">Syngenta SA (Pty) Ltd. / (Edms) Bpk.</div>
+</div>
+<div class="s12_1">
+<div id="t5b_1">(Co./Mpy	Reg.	No.	1998/013761/07)</div>
+<div id="t5c_1">Private	Bag	/	Privaatsak	X	60</div>
+<div id="t5d_1">HALFWAY	HOUSE,	1685	RSA.		</div>
+<div id="t5e_1">Tel.	(011)	541-4000</div>
+</div>
+<div class="s13_1">
+<div id="t5f_1">EMERGENCY TEL. / NOOD TEL. </div>
+<div id="t5g_1">++27 (0) 8312 33 911 </div>
+<div id="t5h_1">(Bateleur 911)</div>
+<div id="t5i_1">© SYNGENTA, AG</div>
+<div id="t5j_1">Batch No </div>
+<div id="t5k_1">Date of Manufacture</div>
+<div id="t5l_1">HARMFUL</div>
+<div id="t5m_1">SKADELIK</div>
+</div>
+<div class="s6_1">
+<div id="t5n_1">INSECTICIDE </div>
+<div id="t5o_1">GROUP </div>
+<div id="t5p_1">3 + 28 </div>
+<div id="t5q_1">INSEKDODERGROEP</div>
+</div>
+</div>
+<!-- End text definitions -->
+
+<!-- Begin page background -->
+<div id="pg1Overlay" style="width:100%; height:100%; position:absolute; z-index:0; background-color:rgba(0,0,0,0);"></div>
+<div id="pg1"><img src="index/1.png" id="pdf1" style="width:909px; height:1286px; background-color:white;"/></div>
+
+<!-- End page background -->
+
+<!-- Begin page loading JS -->
+<script type="text/javascript">
+var f1 = [['t1_1',1192],['t5_1',248],['tf_1',239],['tg_1',1373],['th_1',906],['ti_1',317],['tj_1',1043],['tl_1',291],['to_1',377],['tp_1',309],['tr_1',1387],['tv_1',345],['tx_1',1387],['tz_1',1387],['t10_1',1387],['t12_1',771],['t14_1',1134],['t17_1',1387],['t19_1',1387],['t1b_1',1138],['t1c_1',726],['t1f_1',1301],['t1k_1',607],['t1o_1',1387],['t1r_1',645],['t1t_1',381],['t1u_1',1269],['t1w_1',1301],['t1x_1',1301],['t1y_1',356],['t1z_1',487],['t20_1',878],['t24_1',122],['t27_1',147],['t28_1',427],['t2a_1',175],['t2d_1',175],['t33_1',1288],['t34_1',381],['t39_1',1040],['t3b_1',1317],['t3c_1',1318],['t3d_1',1318],['t3f_1',1317],['t3g_1',1318],['t3h_1',1318],['t3j_1',1317],['t3k_1',1317],['t3l_1',1304],['t3o_1',1317],['t3p_1',1317],['t3r_1',441],['t4c_1',1583],['t4d_1',510],['t4e_1',427],['t4f_1',422],['t4h_1',711],['t4j_1',108],['t4m_1',216],['t4n_1',562],['t4p_1',85],['t4r_1',122],['t4s_1',115],['t4v_1',155],['t4z_1',906],['t50_1',906],['t51_1',906],['t52_1',906],['t53_1',824],['t54_1',906],['t55_1',906],['t56_1',906],['t57_1',906],['t58_1',505],['t5a_1',574],['t5f_1',516],['t5g_1',325],['t5h_1',221],['t5i_1',290],['t5j_1',149],['t5k_1',331],['t5p_1',105]];
+var c1 = 0;
+function fontAdjustments1(){;
+	if (c1<f1.length) {
+		adjustWordSpacing(f1[c1][0],f1[c1][1]);
+		c1++;
+		if (c1%10 == 0) {
+			setTimeout(function(){fontAdjustments1()},0);
+		} else {
+			fontAdjustments1();
+		}
+	}
+};
+function load1(){
+	var timeout = 100;
+	if (navigator.userAgent.match(/iPhone|iPad|iPod|Android/i)) timeout = 500;
+	setTimeout(fontAdjustments1,timeout);
+}
+</script>
+<!-- End page loading JS -->
+
+</div>
+
+</div>
+<div id="brand" style="margin:0 auto; width:94px; padding:5px; clear: both;">
+<a href="../../index.html">
+<img title="PDF to HTML5 Conversion by IDRsolutions" alt="PDF to HTML5 Conversion by IDRsolutions" style="border:0;" src="icons/logo.png" />
+</a>
+</div>
+<script type="text/javascript">
+	makeNavBar(2,1,909,1286,0);
+</script>
+</body>
+</html>

@@ -1,0 +1,1151 @@
+<!DOCTYPE html >
+<html lang="en">
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+<meta charset="utf-8" />
+<title>AMISTAR_Top___ENG_2012_08_01 Page1</title>
+</head>
+
+<body style="background-color:#919191;">
+
+<style type="text/css">
+    body {
+        margin:0;
+    }
+
+    #nav button {
+        width: 100px;
+        height: 30px;
+        vertical-align: middle;
+    }
+
+    #nav select {
+        width: 100px;
+        height: 27px;
+        vertical-align: middle;
+    }
+
+</style>
+
+<script type="text/javascript">
+
+    var zoom = 1;
+    var width = 0;
+    var height = 0;
+    var curPg = 0;
+    var pgCount = 0;
+	var jpedal;
+	var type;
+
+    function makeNavBar(pageCount, curPage, w, h, t) {
+	
+		//type 0 = single pages
+		//type 1 = splitspreads
+
+        pgCount = pageCount;
+        curPg = curPage;
+        width = w;
+        height = h;
+		type = t;
+        var opt;
+
+        //Populate the goto dropdown with page numbers
+        var goBtn = d("goBtn");
+		
+		if (type == 1) {//splitspreads
+			jpedal = d("container" + curPage);
+			
+			opt = document.createElement('option');
+            opt.value = 1;
+            opt.innerHTML = "Page " + 1;
+			goBtn.appendChild(opt);
+			
+			for (var i = 2; i <= pgCount; i += 2) {
+			
+				opt = document.createElement('option');
+				opt.value = i;
+				var text;
+				if (i != pgCount || pgCount % 2 == 1) {
+					text = "Page " + i + "-" + (i+1);
+				} else {
+					text = "Page " + i;
+				}
+				opt.innerHTML = text;
+				goBtn.appendChild(opt);
+			}
+			
+			goBtn.selectedIndex = curPage/2;
+			
+		} else {
+			jpedal = d("jpedal");
+			
+			for (var i = 1; i <= pgCount; i++) {
+				opt = document.createElement('option');
+				opt.value = i;
+				opt.innerHTML = "Page " + i;
+				goBtn.appendChild(opt);
+			}
+			goBtn.selectedIndex = curPage - 1;
+		}
+		
+
+
+        jpedal.style.transformOrigin = "top left";
+        jpedal.style.webkitTransformOrigin = "top left";
+        jpedal.style.msTransformOrigin = "top left";
+        jpedal.style.mozTransformOrigin = "top left";
+        jpedal.style.oTransformOrigin = "top left";
+        jpedal.style.margin = "0";
+
+        d("container").style.width = width + "px";
+        d("container").style.height = height + "px";
+
+        var doc = document.URL;
+        var jumper = "?zoom=";
+        var jumIdx = doc.toString().indexOf(jumper);
+        var zm = parseFloat(doc.substr(jumIdx + jumper.length));
+		var zoomBtn = d("zoomBtn");
+		if (width > getWidth()) {
+			zoomBtn.options[1].text = "100%";
+			zoomBtn.options[2].text = "Fit Width (Reset)";
+		}
+
+        if (!isNaN(zm) && zm > 0 && zm != 1) {
+            zoom = zm;
+            updateZoom();
+        } else if (width > getWidth()) {
+			zoomBtn.selectedIndex = 2;
+			zoomUpdate();
+		}
+    }
+	
+	function getWidth() {
+		var w = 0;
+		if (self.innerHeight) {
+			w = self.innerWidth;
+		} else if (document.documentElement && document.documentElement.clientHeight) {
+			w = document.documentElement.clientWidth;
+		} else if (document.body) {
+			w = document.body.clientWidth;
+		}
+		return w;
+	}
+
+    function updateZoom() {
+        jpedal.style.transform = "scale(" + zoom + ")";
+        jpedal.style.WebkitTransform = "scale(" + zoom + ")";
+        jpedal.style.msTransform = "scale(" + zoom + ")";
+        jpedal.style.MozTransform = "scale(" + zoom + ")";
+        jpedal.style.OTransform = "scale(" + zoom + ")";
+        d("container").style.width = width * zoom + "px";
+        d("container").style.height = height * zoom + "px";
+
+        var percent = Math.floor(zoom*100) + "%";
+        d("zoomBtn").options[0].innerHTML = percent;
+        d("zoomBtn").selectedIndex = 0;
+    }
+
+    function zoomIn() {
+        zoom = zoom*1.2;
+        updateZoom();
+    }
+
+    function zoomUpdate() {
+        var index = d("zoomBtn").selectedIndex;
+
+        if (index == 0) {
+            //Always current. Do nothing
+        } else if (index == 1) {//Reset
+            zoom = 1;
+        } else if (index == 2) {//Fit Width
+            var winWidth = window.innerWidth;
+            zoom = (winWidth - 40) / width;
+        } else if (index == 3) {//Fit Height
+            var winHeight = window.innerHeight;
+            zoom = (winHeight - 60) / height;
+        } else if (index == 4) {//Fit Page
+            var winWidth = window.innerWidth;
+            var winHeight = window.innerHeight;
+            var wScale = (winWidth - 40) / width;
+            var hScale = (winHeight - 60) / height;
+
+            if (wScale > hScale) {
+                zoom = hScale;
+            } else {
+                zoom = wScale;
+            }
+        }
+
+        updateZoom();
+    }
+
+    function zoomOut() {
+        zoom = zoom/1.2;
+        updateZoom();
+    }
+
+    function goToPage() {
+		var pg;
+		if (type == 0) {
+			pg = d("goBtn").selectedIndex + 1;
+		} else {
+			pg = (d("goBtn").selectedIndex * 2) + 1;
+		}
+        if (pg != curPg) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(pg, pgCount);
+			} else {
+				link = getMagazinePageHref(pg, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function getPageHref(page, count) {
+        var iWithLeadingZeros = page.toString();
+        var leadingZerosNeeded = count.toString().length - iWithLeadingZeros.length;
+
+        if(page === 1) {
+            iWithLeadingZeros = "index"
+        } else {
+            for(var n = 0; n < leadingZerosNeeded; n ++) {
+                iWithLeadingZeros = "0" + iWithLeadingZeros;
+            }
+        }
+        return iWithLeadingZeros;
+    }
+	
+	function getMagazinePageHref(page, count) {
+		if(page === 1) return getPageHref(page, count);
+		else if(page % 2 === 0) {
+			if(page === count)
+				return getPageHref(page, count);
+			else
+				return getPageHref(page, count) + "-" + getPageHref(page + 1, count);
+			}
+				else {
+			return getPageHref(page-1, count) + "-" + getPageHref(page, count);
+		}
+	}
+
+    function next() {
+        if (curPg < pgCount) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(curPg + 1, pgCount);
+			} else {
+				if (pgCount % 2 != 0 && curPg + 1 == pgCount) return;
+				link = getMagazinePageHref(curPg + 2, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function prev() {
+        if (curPg > 1) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(curPg - 1, pgCount);
+			} else {
+				link = getMagazinePageHref(curPg - 1, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function d(id){
+        return document.getElementById(id);
+    }
+
+</script>
+
+<div id="nav" style="background-color:#919191; padding-top: 10px; text-align: center; position: fixed; width: 100%; height: 40px; z-index:999;">
+    <button onclick="prev()" id="prev">Prev &lt;&lt;</button>
+    <select id="goBtn" onchange="goToPage()">
+
+    </select>
+    <button onclick="next()" id="next" style="margin-right:30px;">&gt;&gt; Next</button>
+
+    <button onclick="zoomOut()" id="zoomOut">Zoom Out</button>
+    <select id="zoomBtn" onchange="zoomUpdate()">
+        <option value="0">100%</option>
+        <option value="1">100% (Reset)</option>
+        <option value="2">Fit Width</option>
+        <option value="3">Fit Height</option>
+        <option value="4">Fit Page</option>
+
+    </select>
+    <button onclick="zoomIn()" id="zoomIn">Zoom In</button>
+</div>
+<div style="position:relative; width: 100%; height: 50px;"></div>
+
+<div id="container" style="margin: 0 auto 10px;">
+</script>
+
+
+
+<div id="jpedal" style="position:relative; width: 909px; height: 1286px; overflow: hidden; margin: 0 auto; box-shadow: 0 2px 6px rgba(100, 100, 100, 0.5);">
+
+<!-- Begin shared CSS values -->
+<!--[if lt IE 9]><style type="text/css">.t div div{zoom: 25%;}</style><![endif]-->
+<style type="text/css" >
+.t {
+	position: absolute;
+	-webkit-transform-origin: top left;
+	-moz-transform-origin: top left;
+	-o-transform-origin: top left;
+	-ms-transform-origin: top left;
+	-webkit-transform: scale(0.25);
+	-moz-transform: scale(0.25);
+	-o-transform: scale(0.25);
+	-ms-transform: scale(0.25);
+	z-index: 1;
+}
+.t div div {
+	position:absolute;
+	white-space:nowrap;
+	overflow:visible;
+}
+</style>
+<!-- End shared CSS values -->
+
+<!-- Begin shared JS -->
+<script type="text/javascript">
+
+// Ensure that we're not replacing any onload events
+function addLoadEvent(func) {
+	var oldonload = window.onload;
+	if (typeof window.onload != 'function') {
+		window.onload = func;
+	} else {
+		window.onload = function() {
+			if (oldonload) {
+				oldonload();
+			}
+			func();
+		}
+	}
+}
+addLoadEvent(function(){load1();});
+
+function adjustWordSpacing(divName,actualWidth) {
+
+	var el = document.getElementById(divName);
+	var rawWidth=el.offsetWidth;
+	if(actualWidth>rawWidth){
+		var spacing= 0;
+		var s=spacing+'px';
+		el.style.wordSpacing = s;
+		rawWidth=el.offsetWidth;
+
+		var diff=rawWidth-actualWidth;
+		if(diff<0)
+			diff=-diff;
+		var newDiff=diff-1;
+
+		while (spacing<40 && (newDiff===diff || newDiff<diff)){
+
+			diff=newDiff;
+			spacing= spacing+1;
+
+			s=spacing+'px';
+			el.style.wordSpacing = s;
+
+			newDiff=el.offsetWidth-actualWidth;
+			if(newDiff<0)
+				newDiff=-newDiff;
+		}
+		if(diff<=newDiff)
+			spacing=spacing-1;
+		s=spacing+'px';
+		el.style.wordSpacing =s;
+	}
+}
+
+</script>
+<!-- End shared JS -->
+
+
+<!-- Begin inline CSS -->
+<style type="text/css" >
+
+#t1_1{left:439px;top:1622px;}
+#t2_1{left:439px;top:1739px;}
+#t3_1{left:508px;top:1739px;}
+#t4_1{left:975px;top:1739px;}
+#t5_1{left:508px;top:1798px;}
+#t6_1{left:439px;top:1915px;}
+#t7_1{left:657px;top:1915px;}
+#t8_1{left:439px;top:1974px;}
+#t9_1{left:795px;top:1974px;}
+#ta_1{left:1663px;top:1974px;}
+#tb_1{left:439px;top:2033px;}
+#tc_1{left:824px;top:2033px;}
+#td_1{left:1487px;top:2033px;}
+#te_1{left:1663px;top:2033px;}
+#tf_1{left:439px;top:2091px;}
+#tg_1{left:629px;top:2091px;}
+#th_1{left:1662px;top:2091px;}
+#ti_1{left:439px;top:2150px;}
+#tj_1{left:681px;top:2150px;}
+#tk_1{left:439px;top:2209px;}
+#tl_1{left:1514px;top:2209px;}
+#tm_1{left:1663px;top:2209px;}
+#tn_1{left:439px;top:2267px;}
+#to_1{left:686px;top:2267px;}
+#tp_1{left:1636px;top:2267px;}
+#tq_1{left:439px;top:2326px;}
+#tr_1{left:796px;top:2326px;}
+#ts_1{left:1637px;top:2326px;}
+#tt_1{left:439px;top:2385px;}
+#tu_1{left:727px;top:2385px;}
+#tv_1{left:1636px;top:2385px;}
+#tw_1{left:439px;top:2443px;}
+#tx_1{left:862px;top:2443px;}
+#ty_1{left:1636px;top:2443px;}
+#tz_1{left:439px;top:2502px;}
+#t10_1{left:561px;top:2502px;}
+#t11_1{left:779px;top:2502px;}
+#t12_1{left:1635px;top:2502px;}
+#t13_1{left:439px;top:2561px;}
+#t14_1{left:561px;top:2561px;}
+#t15_1{left:1214px;top:2561px;}
+#t16_1{left:1635px;top:2561px;}
+#t17_1{left:439px;top:2619px;}
+#t18_1{left:560px;top:2619px;}
+#t19_1{left:808px;top:2619px;}
+#t1a_1{left:1636px;top:2619px;}
+#t1b_1{left:439px;top:2678px;}
+#t1c_1{left:698px;top:2678px;}
+#t1d_1{left:1690px;top:2678px;}
+#t1e_1{left:439px;top:2737px;}
+#t1f_1{left:648px;top:2737px;}
+#t1g_1{left:439px;top:2795px;}
+#t1h_1{left:840px;top:2795px;}
+#t1i_1{left:1665px;top:2795px;}
+#t1j_1{left:439px;top:2854px;}
+#t1k_1{left:660px;top:2854px;}
+#t1l_1{left:1637px;top:2854px;}
+#t1m_1{left:439px;top:2913px;}
+#t1n_1{left:752px;top:2913px;}
+#t1o_1{left:1662px;top:2913px;}
+#t1p_1{left:439px;top:2971px;}
+#t1q_1{left:685px;top:2971px;}
+#t1r_1{left:1663px;top:2971px;}
+#t1s_1{left:439px;top:3030px;}
+#t1t_1{left:820px;top:3030px;}
+#t1u_1{left:1486px;top:3030px;}
+#t1v_1{left:1636px;top:3030px;}
+#t1w_1{left:439px;top:3147px;}
+#t1x_1{left:613px;top:3147px;}
+#t1y_1{left:439px;top:3206px;}
+#t1z_1{left:439px;top:3323px;}
+#t20_1{left:439px;top:3382px;}
+#t21_1{left:508px;top:3382px;}
+#t22_1{left:508px;top:3441px;}
+#t23_1{left:439px;top:3499px;}
+#t24_1{left:508px;top:3499px;}
+#t25_1{left:508px;top:3558px;}
+#t26_1{left:439px;top:3617px;}
+#t27_1{left:439px;top:3675px;}
+#t28_1{left:508px;top:3675px;}
+#t29_1{left:508px;top:3734px;}
+#t2a_1{left:439px;top:3793px;}
+#t2b_1{left:508px;top:3793px;}
+#t2c_1{left:760px;top:3793px;}
+#t2d_1{left:508px;top:3851px;}
+#t2e_1{left:439px;top:3910px;}
+#t2f_1{left:508px;top:3910px;}
+#t2g_1{left:508px;top:3969px;}
+#t2h_1{left:508px;top:4027px;}
+#t2i_1{left:508px;top:4086px;}
+#t2j_1{left:474px;top:4221px;}
+#t2k_1{left:474px;top:4279px;}
+#t2l_1{left:474px;top:4338px;}
+#t2m_1{left:474px;top:4397px;}
+#t2n_1{left:474px;top:4455px;}
+#t2o_1{left:474px;top:4514px;}
+#t2p_1{left:474px;top:4573px;}
+#t2q_1{left:474px;top:4631px;}
+#t2r_1{left:474px;top:4690px;}
+#t2s_1{left:474px;top:4749px;}
+#t2t_1{left:474px;top:4807px;}
+#t2u_1{left:474px;top:4866px;}
+#t2v_1{left:2033px;top:1635px;}
+#t2w_1{left:2033px;top:1694px;}
+#t2x_1{left:2033px;top:1752px;}
+#t2y_1{left:2033px;top:1811px;}
+#t2z_1{left:1998px;top:1928px;}
+#t30_1{left:1998px;top:2046px;}
+#t31_1{left:1998px;top:2104px;}
+#t32_1{left:2068px;top:2104px;}
+#t33_1{left:2068px;top:2163px;}
+#t34_1{left:1998px;top:2222px;}
+#t35_1{left:1998px;top:2280px;}
+#t36_1{left:2068px;top:2280px;}
+#t37_1{left:2068px;top:2339px;}
+#t38_1{left:2068px;top:2398px;}
+#t39_1{left:2068px;top:2456px;}
+#t3a_1{left:1998px;top:2515px;}
+#t3b_1{left:2068px;top:2515px;}
+#t3c_1{left:2068px;top:2574px;}
+#t3d_1{left:2068px;top:2632px;}
+#t3e_1{left:2068px;top:2691px;}
+#t3f_1{left:2068px;top:2750px;}
+#t3g_1{left:2068px;top:2808px;}
+#t3h_1{left:1998px;top:2867px;}
+#t3i_1{left:2068px;top:2867px;}
+#t3j_1{left:2068px;top:2926px;}
+#t3k_1{left:1998px;top:2984px;}
+#t3l_1{left:2068px;top:2984px;}
+#t3m_1{left:2068px;top:3043px;}
+#t3n_1{left:2068px;top:3102px;}
+#t3o_1{left:1998px;top:3160px;}
+#t3p_1{left:2068px;top:3160px;}
+#t3q_1{left:2068px;top:3219px;}
+#t3r_1{left:1998px;top:3278px;}
+#t3s_1{left:1998px;top:3395px;}
+#t3t_1{left:1998px;top:3512px;}
+#t3u_1{left:2659px;top:3512px;}
+#t3v_1{left:3041px;top:3512px;}
+#t3w_1{left:1998px;top:3571px;}
+#t3x_1{left:1998px;top:3630px;}
+#t3y_1{left:2910px;top:3630px;}
+#t3z_1{left:3162px;top:3630px;}
+#t40_1{left:3292px;top:3630px;}
+#t41_1{left:1998px;top:3688px;}
+#t42_1{left:1998px;top:3747px;}
+#t43_1{left:1998px;top:3806px;}
+#t44_1{left:1998px;top:3864px;}
+#t45_1{left:2639px;top:3864px;}
+#t46_1{left:2874px;top:3864px;}
+#t47_1{left:2986px;top:3864px;}
+#t48_1{left:1998px;top:3923px;}
+#t49_1{left:1998px;top:4040px;}
+#t4a_1{left:1998px;top:4158px;}
+#t4b_1{left:2068px;top:4158px;}
+#t4c_1{left:2068px;top:4216px;}
+#t4d_1{left:2068px;top:4275px;}
+#t4e_1{left:1998px;top:4360px;}
+#t4f_1{left:2068px;top:4360px;}
+#t4g_1{left:2068px;top:4418px;}
+#t4h_1{left:1998px;top:4503px;}
+#t4i_1{left:2068px;top:4503px;}
+#t4j_1{left:2068px;top:4562px;}
+#t4k_1{left:1998px;top:4679px;}
+#t4l_1{left:2102px;top:4679px;}
+#t4m_1{left:1998px;top:4796px;}
+#t4n_1{left:2068px;top:4796px;}
+#t4o_1{left:3323px;top:4796px;}
+#t4p_1{left:2068px;top:4855px;}
+#t4q_1{left:1998px;top:4914px;}
+#t4r_1{left:2068px;top:4914px;}
+#t4s_1{left:2421px;top:4914px;}
+#t4t_1{left:472px;top:1220px;}
+#t4u_1{left:472px;top:1242px;}
+#t4v_1{left:472px;top:1264px;}
+#t4w_1{left:472px;top:733px;}
+#t4x_1{left:894px;top:733px;}
+#t4y_1{left:1063px;top:733px;}
+#t4z_1{left:472px;top:817px;}
+#t50_1{left:1117px;top:817px;}
+#t51_1{left:472px;top:861px;}
+#t52_1{left:472px;top:905px;}
+#t53_1{left:917px;top:905px;}
+#t54_1{left:1325px;top:905px;}
+#t55_1{left:1433px;top:905px;}
+#t56_1{left:472px;top:949px;}
+#t57_1{left:472px;top:993px;}
+#t58_1{left:909px;top:993px;}
+#t59_1{left:1327px;top:993px;}
+#t5a_1{left:1433px;top:993px;}
+#t5b_1{left:472px;top:1096px;}
+#t5c_1{left:1026px;top:640px;}
+#t5d_1{left:1158px;top:640px;}
+#t5e_1{left:1273px;top:640px;}
+#t5f_1{left:1758px;top:640px;}
+#t5g_1{left:1939px;top:640px;}
+#t5h_1{left:2248px;top:640px;}
+#t5i_1{left:2402px;top:640px;}
+#t5j_1{left:1531px;top:703px;}
+#t5k_1{left:1531px;top:754px;}
+#t5l_1{left:1531px;top:805px;}
+#t5m_1{left:1531px;top:855px;}
+#t5n_1{left:1531px;top:906px;}
+#t5o_1{left:1531px;top:974px;}
+#t5p_1{left:1531px;top:1025px;}
+#t5q_1{left:2378px;top:1025px;}
+#t5r_1{left:1531px;top:1076px;}
+#t5s_1{left:1531px;top:1126px;letter-spacing:1px;}
+#t5t_1{left:1531px;top:1177px;}
+#t5u_1{left:2514px;top:992px;}
+#t5v_1{left:2514px;top:1032px;}
+#t5w_1{left:2514px;top:1072px;}
+#t5x_1{left:2514px;top:1113px;}
+#t5y_1{left:2514px;top:1153px;}
+#t5z_1{left:2514px;top:1193px;}
+#t60_1{left:2514px;top:714px;}
+#t61_1{left:2514px;top:754px;}
+#t62_1{left:2514px;top:794px;}
+#t63_1{left:2514px;top:875px;}
+#t64_1{left:1531px;top:1283px;}
+#t65_1{left:2314px;top:1283px;}
+#t66_1{left:1869px;top:1415px;}
+#t67_1{left:1855px;top:1455px;}
+#t68_1{left:928px;top:103px;}
+
+.s4_1{
+	FONT-SIZE: 36px;
+	FONT-FAMILY: SZZVHX-HelveticaNeueLTStd-Bd1;
+	color: rgb(0,0,0);
+}
+
+.s1_1{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: SZZVHX-HelveticaNeueLTStd-Bd1;
+	color: rgb(0,0,0);
+}
+
+.s10_1{
+	FONT-SIZE: 33px;
+	FONT-FAMILY: SZZVHX-HelveticaNeueLTStd-Bd1;
+	color: rgb(0,0,0);
+}
+
+.s9_1{
+	FONT-SIZE: 33px;
+	FONT-FAMILY: SZZVHX-HelveticaNeueLTStd-Lt1;
+	color: rgb(0,0,0);
+}
+
+.s3_1{
+	FONT-SIZE: 20px;
+	FONT-FAMILY: RRPPTZ-HelveticaNeueLTStd-Roman1;
+	color: rgb(0,0,0);
+}
+
+.s12_1{
+	FONT-SIZE: 33px;
+	FONT-FAMILY: SZZVHX-HelveticaNeueLTStd-Bd1;
+	color: rgb(255,255,255);
+}
+
+.s11_1{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: SZZVHX-HelveticaNeueLTStd-Bd1;
+	color: rgb(0,0,0);
+}
+
+.s5_1{
+	FONT-SIZE: 36px;
+	FONT-FAMILY: SZZVHX-HelveticaNeueLTStd-Lt1;
+	color: rgb(0,0,0);
+}
+
+.s6_1{
+	FONT-SIZE: 36px;
+	FONT-FAMILY: RRPPTZ-HelveticaNeueLTStd-Lt1;
+	color: rgb(0,0,0);
+}
+
+.s2_1{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: SZZVHX-HelveticaNeueLTStd-Lt1;
+	color: rgb(0,0,0);
+}
+
+.s8_1{
+	FONT-SIZE: 30px;
+	FONT-FAMILY: SZZVHX-HelveticaNeueLTStd-Bd1;
+	color: rgb(0,0,0);
+}
+
+.s7_1{
+	FONT-SIZE: 36px;
+	FONT-FAMILY: MT-Extra1;
+	color: rgb(0,0,0);
+}
+
+</style>
+<!-- End inline CSS -->
+
+<!-- Begin embedded font definitions -->
+<style type="text/css" >
+
+@font-face {
+	font-family: SZZVHX-HelveticaNeueLTStd-Bd1;
+	src: url("index/fonts/SZZVHX-HelveticaNeueLTStd-Bd.otf");
+}
+
+@font-face {
+	font-family: RRPPTZ-HelveticaNeueLTStd-Lt1;
+	src: url("index/fonts/RRPPTZ-HelveticaNeueLTStd-Lt.otf");
+}
+
+@font-face {
+	font-family: MT-Extra1;
+	src: url("index/fonts/MT-Extra.otf");
+}
+
+@font-face {
+	font-family: SZZVHX-HelveticaNeueLTStd-Lt1;
+	src: url("index/fonts/SZZVHX-HelveticaNeueLTStd-Lt.otf");
+}
+
+@font-face {
+	font-family: RRPPTZ-HelveticaNeueLTStd-Roman1;
+	src: url("index/fonts/RRPPTZ-HelveticaNeueLTStd-Roman.otf");
+}
+
+</style>
+<!-- End embedded font definitions -->
+
+<!-- Begin text definitions (Positioned/styled in CSS) -->
+<div class="t">
+<div class="s1_1">
+<div id="t1_1">1. WARNINGS:</div>
+</div>
+<div class="s2_1">
+<div id="t2_1">•	</div>
+</div>
+<div class="s1_1">
+<div id="t3_1">Withholding periods</div>
+</div>
+<div class="s2_1">
+<div id="t4_1">:	Minimum	number	of	days	between	last	</div>
+<div id="t5_1">application	and	harvest.</div>
+</div>
+<div class="s1_1">
+<div id="t6_1">Brassica </div>
+</div>
+<div class="s2_1">
+<div id="t7_1">(broccoli,	cabbage,	brussels	sprouts,</div>
+<div id="t8_1">cauliflower,	kale)</div>
+<div id="t9_1">...............................................................	</div>
+</div>
+<div class="s1_1">
+<div id="ta_1">3 days</div>
+<div id="tb_1">Bulb vegetables </div>
+</div>
+<div class="s2_1">
+<div id="tc_1">(bulb	onion,	chives,	garlic,	leek)</div>
+<div id="td_1">............	</div>
+</div>
+<div class="s1_1">
+<div id="te_1">7 days</div>
+<div id="tf_1">Carrots </div>
+</div>
+<div class="s2_1">
+<div id="tg_1">...........................................................................	</div>
+</div>
+<div class="s1_1">
+<div id="th_1">7 days</div>
+<div id="ti_1">Cucurbits </div>
+</div>
+<div class="s2_1">
+<div id="tj_1">(melon,	watermelon,	pumpkin,	squash,	</div>
+<div id="tk_1">zucchini,	cucumber,	gherkin,	excluding	patty	pans)</div>
+<div id="tl_1">..........	</div>
+</div>
+<div class="s1_1">
+<div id="tm_1">3 days </div>
+<div id="tn_1">Dry beans </div>
+</div>
+<div class="s2_1">
+<div id="to_1">.....................................................................	</div>
+</div>
+<div class="s1_1">
+<div id="tp_1">45 days</div>
+<div id="tq_1">Grain sorghum </div>
+</div>
+<div class="s2_1">
+<div id="tr_1">.............................................................	</div>
+</div>
+<div class="s1_1">
+<div id="ts_1">14 days</div>
+<div id="tt_1">Groundnuts </div>
+</div>
+<div class="s2_1">
+<div id="tu_1">..................................................................	</div>
+</div>
+<div class="s1_1">
+<div id="tv_1">28 days</div>
+<div id="tw_1">Maize, sweetcorn </div>
+</div>
+<div class="s2_1">
+<div id="tx_1">........................................................	</div>
+</div>
+<div class="s1_1">
+<div id="ty_1">14 days</div>
+<div id="tz_1">Nuts </div>
+</div>
+<div class="s2_1">
+<div id="t10_1">(almonds)</div>
+<div id="t11_1">..............................................................	</div>
+</div>
+<div class="s1_1">
+<div id="t12_1">28 days</div>
+<div id="t13_1">Nuts </div>
+</div>
+<div class="s2_1">
+<div id="t14_1">(cashew,	macadamia,	pecans)</div>
+<div id="t15_1">..............................	</div>
+</div>
+<div class="s1_1">
+<div id="t16_1">45 days</div>
+<div id="t17_1">Nuts </div>
+</div>
+<div class="s2_1">
+<div id="t18_1">(pistachios)</div>
+<div id="t19_1">............................................................	</div>
+</div>
+<div class="s1_1">
+<div id="t1a_1">14 days </div>
+<div id="t1b_1">Patty pans </div>
+</div>
+<div class="s2_1">
+<div id="t1c_1">........................................................................	</div>
+</div>
+<div class="s1_1">
+<div id="t1d_1">1 day </div>
+<div id="t1e_1">Peppers </div>
+</div>
+<div class="s2_1">
+<div id="t1f_1">(bell/sweet/chilli	pepper,	paprika,</div>
+<div id="t1g_1">pimento,	piquante)</div>
+<div id="t1h_1">............................................................	</div>
+</div>
+<div class="s1_1">
+<div id="t1i_1">7 days</div>
+<div id="t1j_1">Potatoes </div>
+</div>
+<div class="s2_1">
+<div id="t1k_1">.......................................................................	</div>
+</div>
+<div class="s1_1">
+<div id="t1l_1">14 days</div>
+<div id="t1m_1">Strawberries </div>
+</div>
+<div class="s2_1">
+<div id="t1n_1">..................................................................	</div>
+</div>
+<div class="s1_1">
+<div id="t1o_1">0 days</div>
+<div id="t1p_1">Tomatoes </div>
+</div>
+<div class="s2_1">
+<div id="t1q_1">.......................................................................	</div>
+</div>
+<div class="s1_1">
+<div id="t1r_1">7 days</div>
+<div id="t1s_1">Tuberous crops </div>
+</div>
+<div class="s2_1">
+<div id="t1t_1">(cassava,	ginger,	sweet	potato)</div>
+<div id="t1u_1">..........	</div>
+</div>
+<div class="s1_1">
+<div id="t1v_1">14 days</div>
+<div id="t1w_1">NOTE:</div>
+</div>
+<div class="s2_1">
+<div id="t1x_1">Compliance	 with	 these	 withholding	 periods	 will	 ensure	</div>
+<div id="t1y_1">that	residues	do	not	exceed	local	Maximum	Residue	Limits.</div>
+<div id="t1z_1">•	 Harmful	if	swallowed	or	inhaled.</div>
+<div id="t20_1">•	</div>
+<div id="t21_1">Toxic	to	fish	and	harmful	to	other	aquatic	life.	May	cause	long-</div>
+<div id="t22_1">term	adverse	effects	in	aquatic	environments.</div>
+<div id="t23_1">•	</div>
+<div id="t24_1">Avoid	contact	with	skin	or	eyes	since	product	may	cause	eye	</div>
+<div id="t25_1">and	skin	irritation,	and	skin	sensitisation.</div>
+<div id="t26_1">•	 Store	away	from	food	and	feed.</div>
+<div id="t27_1">•	</div>
+<div id="t28_1">Keep	 out	 of	 reach	 of	 children,	 uninformed	 persons	 and	 ani-</div>
+<div id="t29_1">mals.</div>
+<div id="t2a_1">•	</div>
+</div>
+<div class="s1_1">
+<div id="t2b_1">Re-entry:</div>
+</div>
+<div class="s2_1">
+<div id="t2c_1">Do	not	enter	treated	area	until	spray	deposit	has	</div>
+<div id="t2d_1">dried.</div>
+<div id="t2e_1">•	</div>
+</div>
+<div class="s1_1">
+<div id="t2f_1">Aerial application:</div>
+</div>
+<div class="s2_1">
+<div id="t2g_1">Notify	all	inhabitants	in	the	immediate	vicinity	of	the	area	to	be	</div>
+<div id="t2h_1">sprayed	and	issue	the	necessary	warnings.	Do	not	spray	over	</div>
+<div id="t2i_1">or	allow	drift	to	contaminate	water	or	adjacent	areas.	</div>
+<div id="t2j_1">Although	 this	 remedy	 has	 been	 extensively	 tested	 under	 a	</div>
+<div id="t2k_1">large	 variety	 of	 conditions,	 the	 registration	 holder	 does	 not	</div>
+<div id="t2l_1">warrant	that	it	will	be	effective	under	all	conditions	because	the	</div>
+<div id="t2m_1">action	and	effect	thereof	may	be	affected	by	factors	such	as	</div>
+<div id="t2n_1">abnormal	soil,	climatic	and	storage	conditions,	quality	of	dilu-</div>
+<div id="t2o_1">tion	 water,	 compatibility	 with	 other	 substances	 not	 indicated	</div>
+<div id="t2p_1">on	the	label	and	the	occurrence	of	resistance	of	the	disease	</div>
+<div id="t2q_1">against	 the	 remedy	 concerned,	 as	 well	 as	 by	 the	 method,	</div>
+<div id="t2r_1">time	and	accuracy	of	application.	The	registration	holder	fur-</div>
+<div id="t2s_1">thermore	does	not	accept	responsibility	for	damage	to	crops,	</div>
+<div id="t2t_1">vegetation,	the	environment,	or	harm	to	man	or	animal	or	for	</div>
+<div id="t2u_1">lack	of	performance	of	the	remedy	concerned	due	to	failure	of	</div>
+<div id="t2v_1">the	user	to	follow	the	label	instructions	or	to	the	occurrence	</div>
+<div id="t2w_1">of	 conditions	 which	 could	 not	 have	 been	 foreseen	 in	 terms	</div>
+<div id="t2x_1">of	 the	 registration.	 Consult	 the	 supplier	 in	 the	 event	 of	 any	</div>
+<div id="t2y_1">uncertainty.</div>
+</div>
+<div class="s1_1">
+<div id="t2z_1">2. PRECAUTIONS:</div>
+</div>
+<div class="s2_1">
+<div id="t30_1">•	 Do	not	eat	drink	or	smoke	whilst	handling	this	product.</div>
+<div id="t31_1">•	</div>
+<div id="t32_1">Prevent	contamination	of	food,	feed,	drinking	water	and	eating	</div>
+<div id="t33_1">utensils.</div>
+<div id="t34_1">•	 Avoid	contact	with	skin	or	eyes	and	inhalation	of	spray	mist.</div>
+<div id="t35_1">•	</div>
+<div id="t36_1">Wear	rubber	gloves	and	a	face	shield	when	handling	the	pro-</div>
+<div id="t37_1">duct.	If	you	get	product	in	your	eyes,	flush	it	out	at	once.	If	you	</div>
+<div id="t38_1">get	it	on	your	skin,	wash	it	off	at	once.	If	you	spill	it	on	your	</div>
+<div id="t39_1">clothes,	change	and	wash	them.</div>
+<div id="t3a_1">•	</div>
+<div id="t3b_1">Invert	the	empty	container	over	the	spray	or	mixing	tank	and	</div>
+<div id="t3c_1">allow	to	drain	for	at	least	30	seconds	after	the	flow	has	slowed	</div>
+<div id="t3d_1">down	to	a	drip.	Thereafter,	rinse	the	container	three	times	with	</div>
+<div id="t3e_1">a	volume	of	water	equal	to	a	minimum	of	10	%	of	that	of	the	</div>
+<div id="t3f_1">container.	 Add	 the	 rinsing	 to	 the	 contents	 of	 the	 spray	 tank	</div>
+<div id="t3g_1">before	destroying	the	container.</div>
+<div id="t3h_1">•	</div>
+<div id="t3i_1">While	spraying,	avoid	contact	with	the	spray	as	much	as	possi-</div>
+<div id="t3j_1">ble.	Avoid	spray	drift	onto	other	crops,	grazing,	rivers	or	dams.</div>
+<div id="t3k_1">•	</div>
+<div id="t3l_1">Clean	applicator	thoroughly	after	use	and	dispose	of	cleansing	</div>
+<div id="t3m_1">water	 where	 it	 will	 not	 contaminate	 crops,	 grazing,	 rivers	 or	</div>
+<div id="t3n_1">dams.</div>
+<div id="t3o_1">•	</div>
+<div id="t3p_1">Destroy	 empty	 container	 and	 do	 not	 use	 for	 any	 other	 pur-</div>
+<div id="t3q_1">pose.</div>
+<div id="t3r_1">•	 Change	and	wash	your	work	clothes.	Wash	yourself.</div>
+</div>
+<div class="s1_1">
+<div id="t3s_1">3. RESISTANCE MANAGEMENT</div>
+</div>
+<div class="s2_1">
+<div id="t3t_1">For	 resistance	 management,	</div>
+</div>
+<div class="s1_1">
+<div id="t3u_1">AMISTAR TOP</div>
+</div>
+<div class="s2_1">
+<div id="t3v_1">is	 classified	 as	</div>
+<div id="t3w_1">a	 group	 code	 11	 and	 3	 fungicide.	 Any	 fungus	 population	 may	</div>
+<div id="t3x_1">contain	 individuals	 naturally	 resistant	 to	</div>
+</div>
+<div class="s1_1">
+<div id="t3y_1">AMISTAR</div>
+<div id="t3z_1">TOP</div>
+</div>
+<div class="s2_1">
+<div id="t40_1">and	</div>
+<div id="t41_1">other	group	 code	11	and	3	fungicides.	The	resistant	 individuals	</div>
+<div id="t42_1">can	eventually	dominate	the	fungus	population	if	these	fungicides	</div>
+<div id="t43_1">are	used	repeatedly	and	exclusively	in	programs.		These	resistant	</div>
+<div id="t44_1">fungi	may	not	be	controlled	by	</div>
+</div>
+<div class="s1_1">
+<div id="t45_1">AMISTAR</div>
+<div id="t46_1">TOP</div>
+</div>
+<div class="s2_1">
+<div id="t47_1">or	any	other	group	</div>
+<div id="t48_1">code	11	and	3	fungicides.</div>
+<div id="t49_1">To	delay	fungicide	resistance:</div>
+<div id="t4a_1">•	</div>
+<div id="t4b_1">Avoid	 exclusive	 repeated	 use	 of	 fungicides	 from	 the	 same	</div>
+<div id="t4c_1">fungicide	 group	 code.	 	 Alternate	 or	 tank	 mix	 with	 products	</div>
+<div id="t4d_1">from	different	fungicide	group	codes.</div>
+<div id="t4e_1">•	</div>
+<div id="t4f_1">Refer	to	individual	product	labels	when	alternating	products	or	</div>
+<div id="t4g_1">when	using	tank	mixtures.</div>
+<div id="t4h_1">•	</div>
+<div id="t4i_1">Integrate	other	control	methods	(chemical,	cultural,	biological)	</div>
+<div id="t4j_1">into	disease	control	programs.</div>
+</div>
+<div class="s1_1">
+<div id="t4k_1">3.1 </div>
+<div id="t4l_1">General:</div>
+</div>
+<div class="s2_1">
+<div id="t4m_1">•	</div>
+</div>
+<div class="s1_1">
+<div id="t4n_1">AMISTAR TOP should always be applied preventively </div>
+</div>
+<div class="s2_1">
+<div id="t4o_1">as	</div>
+<div id="t4p_1">prescribed	in	the	recommendations	table.</div>
+<div id="t4q_1">•	</div>
+</div>
+<div class="s1_1">
+<div id="t4r_1">AMISTAR TOP </div>
+</div>
+<div class="s2_1">
+<div id="t4s_1">must	be	applied	as	a	full	cover	spray.	</div>
+</div>
+<div class="s3_1">
+<div id="t4t_1">Product names marked ® or ™ , the ALLIANCE FRAME</div>
+<div id="t4u_1">the SYNGENTA Logo and the PURPOSE ICON </div>
+<div id="t4v_1">are Trademarks of a Syngenta Group Company</div>
+</div>
+<div class="s4_1">
+<div id="t4w_1">FUNGICIDE GROUP </div>
+<div id="t4x_1">11 & 3 </div>
+<div id="t4y_1">SWAMDODERGROEP</div>
+</div>
+<div class="s5_1">
+<div id="t4z_1">Aktiewe	bestanddele	/	Active	Ingredients</div>
+</div>
+<div class="s6_1">
+<div id="t50_1">:</div>
+</div>
+<div class="s4_1">
+<div id="t51_1">asoksistrobien (strobilurien)</div>
+<div id="t52_1">azoxystrobin (strobilurin) </div>
+</div>
+<div class="s5_1">
+<div id="t53_1">.......................................	</div>
+</div>
+<div class="s4_1">
+<div id="t54_1">200 g/</div>
+</div>
+<div class="s7_1">
+<div id="t55_1">l</div>
+</div>
+<div class="s4_1">
+<div id="t56_1">difenokonasool (triasool)</div>
+<div id="t57_1">difenoconazole (triazole) </div>
+</div>
+<div class="s5_1">
+<div id="t58_1">........................................	</div>
+</div>
+<div class="s4_1">
+<div id="t59_1">125 g/</div>
+</div>
+<div class="s7_1">
+<div id="t5a_1">l</div>
+</div>
+<div class="s8_1">
+<div id="t5b_1">UN 3082</div>
+</div>
+<div class="s9_1">
+<div id="t5c_1">Reg.	Nr.	</div>
+</div>
+<div class="s10_1">
+<div id="t5d_1">L7897 </div>
+</div>
+<div class="s9_1">
+<div id="t5e_1">Act	/	Wet	No.	36	of	/	van	1947			</div>
+</div>
+<div class="s10_1">
+<div id="t5f_1">N-AR 1008</div>
+</div>
+<div class="s9_1">
+<div id="t5g_1">(NAMIBIË/NAMIBIA)		</div>
+</div>
+<div class="s10_1">
+<div id="t5h_1">W130609</div>
+</div>
+<div class="s9_1">
+<div id="t5i_1">(Botswana)</div>
+</div>
+<div class="s11_1">
+<div id="t5j_1">‘n Breëspektrum suspensiekonsentraat </div>
+<div id="t5k_1">swamdoder met sistemiese-, trans-</div>
+<div id="t5l_1">laminêre- en kontakeienskappe vir </div>
+<div id="t5m_1">die voorkomende beheer van verskeie </div>
+<div id="t5n_1">blaarsiektes in gewasse soos gelys. </div>
+<div id="t5o_1">A broad spectrum suspension concen-</div>
+<div id="t5p_1">trate fungicide with systemic, trans </div>
+<div id="t5q_1">la-</div>
+<div id="t5r_1">minar and contact properties for the </div>
+<div id="t5s_1">preventive control of different leaf </div>
+<div id="t5t_1">diseases in crops as listed. </div>
+</div>
+<div class="s9_1">
+<div id="t5u_1">Registration	holder	/	Registrasiehouer:</div>
+</div>
+<div class="s10_1">
+<div id="t5v_1">Syngenta SA (Pty) Ltd. / (Edms) Bpk.</div>
+</div>
+<div class="s9_1">
+<div id="t5w_1">(Co./Mpy	Reg.	No.	1998/013761/07)</div>
+<div id="t5x_1">Private	Bag	/	Privaatsak	X	60</div>
+<div id="t5y_1">HALFWAY	HOUSE,	1685	RSA.		</div>
+<div id="t5z_1">Tel.	(011)	541-4000</div>
+</div>
+<div class="s10_1">
+<div id="t60_1">EMERGENCY TEL. / NOOD TEL. </div>
+<div id="t61_1">++27 (0) 8312 33 911 </div>
+<div id="t62_1">(Bateleur 911)</div>
+<div id="t63_1">© SYNGENTA, AG</div>
+<div id="t64_1">Batch No </div>
+<div id="t65_1">Date of Manufacture</div>
+</div>
+<div class="s12_1">
+<div id="t66_1">CAUTION</div>
+<div id="t67_1">VERSIGTIG</div>
+</div>
+<div class="s1_1">
+<div id="t68_1">LEES VOLLEDIGE ETIKET DEEGLIK VOORDAT HIERDIE PRODUK GEBRUIK WORD</div>
+</div>
+</div>
+<!-- End text definitions -->
+
+<!-- Begin page background -->
+<div id="pg1Overlay" style="width:100%; height:100%; position:absolute; z-index:0; background-color:rgba(0,0,0,0);"></div>
+<div id="pg1"><img src="index/1.png" id="pdf1" style="width:909px; height:1286px; background-color:white;"/></div>
+
+<!-- End page background -->
+
+<!-- Begin page loading JS -->
+<script type="text/javascript">
+var f1 = [['t1_1',353],['t3_1',466],['ta_1',149],['tb_1',372],['te_1',149],['th_1',150],['tm_1',149],['tn_1',234],['tp_1',176],['tq_1',344],['ts_1',175],['tv_1',176],['tw_1',410],['ty_1',176],['t12_1',177],['t16_1',177],['t1a_1',176],['t1b_1',246],['t1d_1',123],['t1i_1',147],['t1l_1',175],['t1o_1',150],['t1r_1',149],['t1s_1',367],['t1v_1',177],['t1x_1',1213],['t1z_1',740],['t26_1',742],['t28_1',1304],['t2f_1',420],['t2j_1',1317],['t2k_1',1318],['t2o_1',1317],['t2q_1',1317],['t2w_1',1318],['t2x_1',1317],['t2z_1',438],['t30_1',1232],['t34_1',1337],['t3f_1',1318],['t3m_1',1317],['t3p_1',1304],['t3r_1',1184],['t3s_1',755],['t3t_1',645],['t3u_1',352],['t3v_1',344],['t3w_1',1387],['t3x_1',895],['t41_1',1387],['t4b_1',1317],['t4c_1',1317],['t4n_1',1240],['t4r_1',338],['t4t_1',510],['t4u_1',427],['t4v_1',422],['t4w_1',349],['t4x_1',108],['t51_1',489],['t52_1',434],['t54_1',107],['t56_1',434],['t57_1',428],['t59_1',106],['t5b_1',122],['t5f_1',170],['t5j_1',906],['t5k_1',906],['t5l_1',906],['t5m_1',906],['t5n_1',829],['t5o_1',906],['t5p_1',846],['t5r_1',906],['t5s_1',906],['t5t_1',629],['t5v_1',574],['t60_1',516],['t61_1',325],['t62_1',221],['t63_1',290],['t64_1',149],['t65_1',331],['t68_1',1945]];
+var c1 = 0;
+function fontAdjustments1(){;
+	if (c1<f1.length) {
+		adjustWordSpacing(f1[c1][0],f1[c1][1]);
+		c1++;
+		if (c1%10 == 0) {
+			setTimeout(function(){fontAdjustments1()},0);
+		} else {
+			fontAdjustments1();
+		}
+	}
+};
+function load1(){
+	var timeout = 100;
+	if (navigator.userAgent.match(/iPhone|iPad|iPod|Android/i)) timeout = 500;
+	setTimeout(fontAdjustments1,timeout);
+}
+</script>
+<!-- End page loading JS -->
+
+</div>
+
+</div>
+<div id="brand" style="margin:0 auto; width:94px; padding:5px; clear: both;">
+<a href="../../index.html">
+<img title="PDF to HTML5 Conversion by IDRsolutions" alt="PDF to HTML5 Conversion by IDRsolutions" style="border:0;" src="icons/logo.png" />
+</a>
+</div>
+<script type="text/javascript">
+	makeNavBar(6,1,909,1286,0);
+</script>
+</body>
+</html>

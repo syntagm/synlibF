@@ -1,0 +1,1400 @@
+<!DOCTYPE html >
+<html lang="en">
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+<meta charset="utf-8" />
+<title>AMISTAR_Top___ENG_2012_08_01 Page5</title>
+</head>
+
+<body style="background-color:#919191;">
+
+<style type="text/css">
+    body {
+        margin:0;
+    }
+
+    #nav button {
+        width: 100px;
+        height: 30px;
+        vertical-align: middle;
+    }
+
+    #nav select {
+        width: 100px;
+        height: 27px;
+        vertical-align: middle;
+    }
+
+</style>
+
+<script type="text/javascript">
+
+    var zoom = 1;
+    var width = 0;
+    var height = 0;
+    var curPg = 0;
+    var pgCount = 0;
+	var jpedal;
+	var type;
+
+    function makeNavBar(pageCount, curPage, w, h, t) {
+	
+		//type 0 = single pages
+		//type 1 = splitspreads
+
+        pgCount = pageCount;
+        curPg = curPage;
+        width = w;
+        height = h;
+		type = t;
+        var opt;
+
+        //Populate the goto dropdown with page numbers
+        var goBtn = d("goBtn");
+		
+		if (type == 1) {//splitspreads
+			jpedal = d("container" + curPage);
+			
+			opt = document.createElement('option');
+            opt.value = 1;
+            opt.innerHTML = "Page " + 1;
+			goBtn.appendChild(opt);
+			
+			for (var i = 2; i <= pgCount; i += 2) {
+			
+				opt = document.createElement('option');
+				opt.value = i;
+				var text;
+				if (i != pgCount || pgCount % 2 == 1) {
+					text = "Page " + i + "-" + (i+1);
+				} else {
+					text = "Page " + i;
+				}
+				opt.innerHTML = text;
+				goBtn.appendChild(opt);
+			}
+			
+			goBtn.selectedIndex = curPage/2;
+			
+		} else {
+			jpedal = d("jpedal");
+			
+			for (var i = 1; i <= pgCount; i++) {
+				opt = document.createElement('option');
+				opt.value = i;
+				opt.innerHTML = "Page " + i;
+				goBtn.appendChild(opt);
+			}
+			goBtn.selectedIndex = curPage - 1;
+		}
+		
+
+
+        jpedal.style.transformOrigin = "top left";
+        jpedal.style.webkitTransformOrigin = "top left";
+        jpedal.style.msTransformOrigin = "top left";
+        jpedal.style.mozTransformOrigin = "top left";
+        jpedal.style.oTransformOrigin = "top left";
+        jpedal.style.margin = "0";
+
+        d("container").style.width = width + "px";
+        d("container").style.height = height + "px";
+
+        var doc = document.URL;
+        var jumper = "?zoom=";
+        var jumIdx = doc.toString().indexOf(jumper);
+        var zm = parseFloat(doc.substr(jumIdx + jumper.length));
+		var zoomBtn = d("zoomBtn");
+		if (width > getWidth()) {
+			zoomBtn.options[1].text = "100%";
+			zoomBtn.options[2].text = "Fit Width (Reset)";
+		}
+
+        if (!isNaN(zm) && zm > 0 && zm != 1) {
+            zoom = zm;
+            updateZoom();
+        } else if (width > getWidth()) {
+			zoomBtn.selectedIndex = 2;
+			zoomUpdate();
+		}
+    }
+	
+	function getWidth() {
+		var w = 0;
+		if (self.innerHeight) {
+			w = self.innerWidth;
+		} else if (document.documentElement && document.documentElement.clientHeight) {
+			w = document.documentElement.clientWidth;
+		} else if (document.body) {
+			w = document.body.clientWidth;
+		}
+		return w;
+	}
+
+    function updateZoom() {
+        jpedal.style.transform = "scale(" + zoom + ")";
+        jpedal.style.WebkitTransform = "scale(" + zoom + ")";
+        jpedal.style.msTransform = "scale(" + zoom + ")";
+        jpedal.style.MozTransform = "scale(" + zoom + ")";
+        jpedal.style.OTransform = "scale(" + zoom + ")";
+        d("container").style.width = width * zoom + "px";
+        d("container").style.height = height * zoom + "px";
+
+        var percent = Math.floor(zoom*100) + "%";
+        d("zoomBtn").options[0].innerHTML = percent;
+        d("zoomBtn").selectedIndex = 0;
+    }
+
+    function zoomIn() {
+        zoom = zoom*1.2;
+        updateZoom();
+    }
+
+    function zoomUpdate() {
+        var index = d("zoomBtn").selectedIndex;
+
+        if (index == 0) {
+            //Always current. Do nothing
+        } else if (index == 1) {//Reset
+            zoom = 1;
+        } else if (index == 2) {//Fit Width
+            var winWidth = window.innerWidth;
+            zoom = (winWidth - 40) / width;
+        } else if (index == 3) {//Fit Height
+            var winHeight = window.innerHeight;
+            zoom = (winHeight - 60) / height;
+        } else if (index == 4) {//Fit Page
+            var winWidth = window.innerWidth;
+            var winHeight = window.innerHeight;
+            var wScale = (winWidth - 40) / width;
+            var hScale = (winHeight - 60) / height;
+
+            if (wScale > hScale) {
+                zoom = hScale;
+            } else {
+                zoom = wScale;
+            }
+        }
+
+        updateZoom();
+    }
+
+    function zoomOut() {
+        zoom = zoom/1.2;
+        updateZoom();
+    }
+
+    function goToPage() {
+		var pg;
+		if (type == 0) {
+			pg = d("goBtn").selectedIndex + 1;
+		} else {
+			pg = (d("goBtn").selectedIndex * 2) + 1;
+		}
+        if (pg != curPg) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(pg, pgCount);
+			} else {
+				link = getMagazinePageHref(pg, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function getPageHref(page, count) {
+        var iWithLeadingZeros = page.toString();
+        var leadingZerosNeeded = count.toString().length - iWithLeadingZeros.length;
+
+        if(page === 1) {
+            iWithLeadingZeros = "index"
+        } else {
+            for(var n = 0; n < leadingZerosNeeded; n ++) {
+                iWithLeadingZeros = "0" + iWithLeadingZeros;
+            }
+        }
+        return iWithLeadingZeros;
+    }
+	
+	function getMagazinePageHref(page, count) {
+		if(page === 1) return getPageHref(page, count);
+		else if(page % 2 === 0) {
+			if(page === count)
+				return getPageHref(page, count);
+			else
+				return getPageHref(page, count) + "-" + getPageHref(page + 1, count);
+			}
+				else {
+			return getPageHref(page-1, count) + "-" + getPageHref(page, count);
+		}
+	}
+
+    function next() {
+        if (curPg < pgCount) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(curPg + 1, pgCount);
+			} else {
+				if (pgCount % 2 != 0 && curPg + 1 == pgCount) return;
+				link = getMagazinePageHref(curPg + 2, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function prev() {
+        if (curPg > 1) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(curPg - 1, pgCount);
+			} else {
+				link = getMagazinePageHref(curPg - 1, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function d(id){
+        return document.getElementById(id);
+    }
+
+</script>
+
+<div id="nav" style="background-color:#919191; padding-top: 10px; text-align: center; position: fixed; width: 100%; height: 40px; z-index:999;">
+    <button onclick="prev()" id="prev">Prev &lt;&lt;</button>
+    <select id="goBtn" onchange="goToPage()">
+
+    </select>
+    <button onclick="next()" id="next" style="margin-right:30px;">&gt;&gt; Next</button>
+
+    <button onclick="zoomOut()" id="zoomOut">Zoom Out</button>
+    <select id="zoomBtn" onchange="zoomUpdate()">
+        <option value="0">100%</option>
+        <option value="1">100% (Reset)</option>
+        <option value="2">Fit Width</option>
+        <option value="3">Fit Height</option>
+        <option value="4">Fit Page</option>
+
+    </select>
+    <button onclick="zoomIn()" id="zoomIn">Zoom In</button>
+</div>
+<div style="position:relative; width: 100%; height: 50px;"></div>
+
+<div id="container" style="margin: 0 auto 10px;">
+</script>
+
+
+
+<div id="jpedal" style="position:relative; width: 909px; height: 1286px; overflow: hidden; margin: 0 auto; box-shadow: 0 2px 6px rgba(100, 100, 100, 0.5);">
+
+<!-- Begin shared CSS values -->
+<!--[if lt IE 9]><style type="text/css">.t div div{zoom: 25%;}</style><![endif]-->
+<style type="text/css" >
+.t {
+	position: absolute;
+	-webkit-transform-origin: top left;
+	-moz-transform-origin: top left;
+	-o-transform-origin: top left;
+	-ms-transform-origin: top left;
+	-webkit-transform: scale(0.25);
+	-moz-transform: scale(0.25);
+	-o-transform: scale(0.25);
+	-ms-transform: scale(0.25);
+	z-index: 1;
+}
+.t div div {
+	position:absolute;
+	white-space:nowrap;
+	overflow:visible;
+}
+</style>
+<!-- End shared CSS values -->
+
+<!-- Begin shared JS -->
+<script type="text/javascript">
+
+// Ensure that we're not replacing any onload events
+function addLoadEvent(func) {
+	var oldonload = window.onload;
+	if (typeof window.onload != 'function') {
+		window.onload = func;
+	} else {
+		window.onload = function() {
+			if (oldonload) {
+				oldonload();
+			}
+			func();
+		}
+	}
+}
+addLoadEvent(function(){load5();});
+
+function adjustWordSpacing(divName,actualWidth) {
+
+	var el = document.getElementById(divName);
+	var rawWidth=el.offsetWidth;
+	if(actualWidth>rawWidth){
+		var spacing= 0;
+		var s=spacing+'px';
+		el.style.wordSpacing = s;
+		rawWidth=el.offsetWidth;
+
+		var diff=rawWidth-actualWidth;
+		if(diff<0)
+			diff=-diff;
+		var newDiff=diff-1;
+
+		while (spacing<40 && (newDiff===diff || newDiff<diff)){
+
+			diff=newDiff;
+			spacing= spacing+1;
+
+			s=spacing+'px';
+			el.style.wordSpacing = s;
+
+			newDiff=el.offsetWidth-actualWidth;
+			if(newDiff<0)
+				newDiff=-newDiff;
+		}
+		if(diff<=newDiff)
+			spacing=spacing-1;
+		s=spacing+'px';
+		el.style.wordSpacing =s;
+	}
+}
+
+</script>
+<!-- End shared JS -->
+
+
+<!-- Begin inline CSS -->
+<style type="text/css" >
+
+#t1_5{left:1696px;top:187px;}
+#t2_5{left:2057px;top:187px;}
+#t3_5{left:2001px;top:2193px;}
+#t4_5{left:2179px;top:2193px;}
+#t5_5{left:2934px;top:2295px;}
+#t6_5{left:2900px;top:2470px;}
+#t7_5{left:2837px;top:2529px;}
+#t8_5{left:2925px;top:2587px;}
+#t9_5{left:3062px;top:2587px;}
+#ta_5{left:3083px;top:2587px;}
+#tb_5{left:2149px;top:2295px;}
+#tc_5{left:2020px;top:2411px;}
+#td_5{left:2020px;top:2470px;}
+#te_5{left:2020px;top:2529px;}
+#tf_5{left:2032px;top:2529px;}
+#tg_5{left:2379px;top:2529px;}
+#th_5{left:2009px;top:2704px;}
+#ti_5{left:2009px;top:2763px;}
+#tj_5{left:2061px;top:2821px;}
+#tk_5{left:2009px;top:2880px;}
+#tl_5{left:2061px;top:2939px;}
+#tm_5{left:2061px;top:2997px;}
+#tn_5{left:2009px;top:3056px;}
+#to_5{left:2061px;top:3056px;}
+#tp_5{left:2417px;top:3056px;}
+#tq_5{left:2061px;top:3115px;}
+#tr_5{left:2434px;top:3115px;}
+#ts_5{left:2704px;top:3115px;}
+#tt_5{left:2716px;top:3115px;}
+#tu_5{left:3230px;top:3115px;}
+#tv_5{left:2061px;top:3173px;}
+#tw_5{left:2009px;top:3232px;}
+#tx_5{left:2061px;top:3291px;}
+#ty_5{left:2061px;top:3349px;}
+#tz_5{left:2009px;top:3408px;}
+#t10_5{left:2914px;top:3408px;}
+#t11_5{left:3286px;top:3408px;}
+#t12_5{left:2061px;top:3467px;}
+#t13_5{left:2009px;top:3584px;}
+#t14_5{left:2009px;top:3643px;}
+#t15_5{left:2061px;top:3643px;}
+#t16_5{left:2534px;top:3643px;}
+#t17_5{left:2760px;top:3643px;}
+#t18_5{left:2796px;top:3643px;}
+#t19_5{left:2009px;top:3701px;}
+#t1a_5{left:2061px;top:3701px;}
+#t1b_5{left:2497px;top:3701px;}
+#t1c_5{left:2668px;top:3701px;}
+#t1d_5{left:2704px;top:3701px;}
+#t1e_5{left:2001px;top:3836px;}
+#t1f_5{left:2179px;top:3836px;}
+#t1g_5{left:2934px;top:3938px;}
+#t1h_5{left:2815px;top:4114px;}
+#t1i_5{left:2847px;top:4172px;}
+#t1j_5{left:3140px;top:4172px;}
+#t1k_5{left:3162px;top:4172px;}
+#t1l_5{left:2149px;top:3938px;}
+#t1m_5{left:2020px;top:4055px;}
+#t1n_5{left:2020px;top:4114px;}
+#t1o_5{left:2020px;top:4172px;}
+#t1p_5{left:2032px;top:4172px;}
+#t1q_5{left:2366px;top:4172px;}
+#t1r_5{left:2020px;top:4231px;}
+#t1s_5{left:2020px;top:4290px;}
+#t1t_5{left:2032px;top:4290px;}
+#t1u_5{left:2337px;top:4290px;}
+#t1v_5{left:2416px;top:4290px;}
+#t1w_5{left:2430px;top:4290px;}
+#t1x_5{left:2020px;top:4348px;}
+#t1y_5{left:2020px;top:4407px;}
+#t1z_5{left:2032px;top:4407px;}
+#t20_5{left:2490px;top:4407px;}
+#t21_5{left:2020px;top:4466px;}
+#t22_5{left:2020px;top:4524px;}
+#t23_5{left:2032px;top:4524px;}
+#t24_5{left:2537px;top:4524px;}
+#t25_5{left:2009px;top:4646px;}
+#t26_5{left:2009px;top:4705px;}
+#t27_5{left:2061px;top:4764px;}
+#t28_5{left:2009px;top:4822px;}
+#t29_5{left:2061px;top:4881px;}
+#t2a_5{left:442px;top:301px;}
+#t2b_5{left:768px;top:301px;}
+#t2c_5{left:1375px;top:399px;}
+#t2d_5{left:1341px;top:516px;}
+#t2e_5{left:1278px;top:574px;}
+#t2f_5{left:1287px;top:633px;}
+#t2g_5{left:1581px;top:633px;}
+#t2h_5{left:1603px;top:633px;}
+#t2i_5{left:590px;top:399px;}
+#t2j_5{left:461px;top:516px;}
+#t2k_5{left:461px;top:574px;}
+#t2l_5{left:450px;top:743px;}
+#t2m_5{left:450px;top:802px;}
+#t2n_5{left:502px;top:861px;}
+#t2o_5{left:450px;top:919px;}
+#t2p_5{left:502px;top:978px;}
+#t2q_5{left:450px;top:1037px;}
+#t2r_5{left:1573px;top:1037px;}
+#t2s_5{left:502px;top:1095px;}
+#t2t_5{left:618px;top:1095px;}
+#t2u_5{left:450px;top:1154px;}
+#t2v_5{left:502px;top:1213px;}
+#t2w_5{left:450px;top:1271px;}
+#t2x_5{left:502px;top:1271px;}
+#t2y_5{left:850px;top:1271px;}
+#t2z_5{left:502px;top:1330px;}
+#t30_5{left:502px;top:1389px;}
+#t31_5{left:450px;top:1447px;}
+#t32_5{left:450px;top:1541px;}
+#t33_5{left:450px;top:1599px;}
+#t34_5{left:502px;top:1599px;}
+#t35_5{left:975px;top:1599px;}
+#t36_5{left:1228px;top:1599px;}
+#t37_5{left:1264px;top:1599px;}
+#t38_5{left:450px;top:1658px;}
+#t39_5{left:502px;top:1658px;}
+#t3a_5{left:938px;top:1658px;}
+#t3b_5{left:1109px;top:1658px;}
+#t3c_5{left:1145px;top:1658px;}
+#t3d_5{left:2001px;top:301px;}
+#t3e_5{left:2167px;top:301px;}
+#t3f_5{left:2426px;top:301px;}
+#t3g_5{left:2167px;top:360px;}
+#t3h_5{left:2934px;top:473px;}
+#t3i_5{left:2900px;top:648px;}
+#t3j_5{left:2837px;top:707px;}
+#t3k_5{left:2847px;top:765px;}
+#t3l_5{left:3140px;top:765px;}
+#t3m_5{left:3162px;top:765px;}
+#t3n_5{left:2815px;top:883px;}
+#t3o_5{left:2826px;top:941px;}
+#t3p_5{left:2963px;top:941px;}
+#t3q_5{left:2984px;top:941px;}
+#t3r_5{left:3097px;top:941px;}
+#t3s_5{left:3133px;top:941px;}
+#t3t_5{left:2149px;top:473px;}
+#t3u_5{left:2020px;top:589px;}
+#t3v_5{left:2020px;top:648px;}
+#t3w_5{left:2020px;top:707px;}
+#t3x_5{left:2032px;top:707px;}
+#t3y_5{left:2301px;top:707px;}
+#t3z_5{left:2020px;top:883px;}
+#t40_5{left:2020px;top:941px;}
+#t41_5{left:2032px;top:941px;}
+#t42_5{left:2393px;top:941px;}
+#t43_5{left:2009px;top:1059px;}
+#t44_5{left:2009px;top:1118px;}
+#t45_5{left:2061px;top:1177px;}
+#t46_5{left:2009px;top:1235px;}
+#t47_5{left:2061px;top:1294px;}
+#t48_5{left:2061px;top:1353px;}
+#t49_5{left:2061px;top:1411px;}
+#t4a_5{left:2061px;top:1470px;}
+#t4b_5{left:2009px;top:1529px;}
+#t4c_5{left:2061px;top:1587px;}
+#t4d_5{left:2009px;top:1646px;}
+#t4e_5{left:3132px;top:1646px;}
+#t4f_5{left:2061px;top:1705px;}
+#t4g_5{left:2177px;top:1705px;}
+#t4h_5{left:2009px;top:1763px;}
+#t4i_5{left:2061px;top:1822px;}
+#t4j_5{left:2009px;top:1939px;}
+#t4k_5{left:2009px;top:1998px;}
+#t4l_5{left:2061px;top:1998px;}
+#t4m_5{left:2534px;top:1998px;}
+#t4n_5{left:2895px;top:1998px;}
+#t4o_5{left:2931px;top:1998px;}
+#t4p_5{left:2009px;top:2057px;}
+#t4q_5{left:2061px;top:2057px;}
+#t4r_5{left:2497px;top:2057px;}
+#t4s_5{left:2668px;top:2057px;}
+#t4t_5{left:2704px;top:2057px;}
+#t4u_5{left:442px;top:1790px;}
+#t4v_5{left:619px;top:1790px;}
+#t4w_5{left:768px;top:1790px;}
+#t4x_5{left:1375px;top:1888px;}
+#t4y_5{left:1256px;top:2064px;}
+#t4z_5{left:1287px;top:2122px;}
+#t50_5{left:1581px;top:2122px;}
+#t51_5{left:1603px;top:2122px;}
+#t52_5{left:590px;top:1888px;}
+#t53_5{left:461px;top:2005px;}
+#t54_5{left:461px;top:2064px;}
+#t55_5{left:461px;top:2122px;}
+#t56_5{left:473px;top:2122px;}
+#t57_5{left:1038px;top:2122px;}
+#t58_5{left:461px;top:2181px;}
+#t59_5{left:461px;top:2240px;}
+#t5a_5{left:473px;top:2240px;}
+#t5b_5{left:1045px;top:2240px;}
+#t5c_5{left:461px;top:2298px;}
+#t5d_5{left:461px;top:2357px;}
+#t5e_5{left:473px;top:2357px;}
+#t5f_5{left:829px;top:2357px;}
+#t5g_5{left:909px;top:2357px;}
+#t5h_5{left:922px;top:2357px;}
+#t5i_5{left:450px;top:2471px;}
+#t5j_5{left:450px;top:2529px;}
+#t5k_5{left:502px;top:2588px;}
+#t5l_5{left:450px;top:2647px;}
+#t5m_5{left:502px;top:2705px;}
+#t5n_5{left:450px;top:2764px;}
+#t5o_5{left:1573px;top:2764px;}
+#t5p_5{left:502px;top:2823px;}
+#t5q_5{left:618px;top:2823px;}
+#t5r_5{left:450px;top:2881px;}
+#t5s_5{left:502px;top:2940px;}
+#t5t_5{left:450px;top:2999px;}
+#t5u_5{left:502px;top:2999px;}
+#t5v_5{left:850px;top:2999px;}
+#t5w_5{left:502px;top:3057px;}
+#t5x_5{left:502px;top:3116px;}
+#t5y_5{left:450px;top:3209px;}
+#t5z_5{left:450px;top:3268px;}
+#t60_5{left:502px;top:3268px;}
+#t61_5{left:975px;top:3268px;}
+#t62_5{left:1228px;top:3268px;}
+#t63_5{left:1264px;top:3268px;}
+#t64_5{left:450px;top:3327px;}
+#t65_5{left:502px;top:3327px;}
+#t66_5{left:938px;top:3327px;}
+#t67_5{left:1109px;top:3327px;}
+#t68_5{left:1145px;top:3327px;}
+#t69_5{left:442px;top:3457px;}
+#t6a_5{left:619px;top:3457px;}
+#t6b_5{left:768px;top:3457px;}
+#t6c_5{left:1375px;top:3563px;}
+#t6d_5{left:1341px;top:3739px;}
+#t6e_5{left:1278px;top:3797px;}
+#t6f_5{left:1287px;top:3856px;}
+#t6g_5{left:1581px;top:3856px;}
+#t6h_5{left:1603px;top:3856px;}
+#t6i_5{left:590px;top:3563px;}
+#t6j_5{left:461px;top:3680px;}
+#t6k_5{left:461px;top:3739px;}
+#t6l_5{left:705px;top:3739px;}
+#t6m_5{left:461px;top:3797px;}
+#t6n_5{left:473px;top:3797px;}
+#t6o_5{left:789px;top:3797px;}
+#t6p_5{left:461px;top:3856px;}
+#t6q_5{left:461px;top:3915px;}
+#t6r_5{left:473px;top:3915px;}
+#t6s_5{left:1008px;top:3915px;}
+#t6t_5{left:450px;top:4029px;}
+#t6u_5{left:450px;top:4087px;}
+#t6v_5{left:502px;top:4146px;}
+#t6w_5{left:450px;top:4205px;}
+#t6x_5{left:502px;top:4263px;}
+#t6y_5{left:450px;top:4322px;}
+#t6z_5{left:1573px;top:4322px;}
+#t70_5{left:502px;top:4381px;}
+#t71_5{left:618px;top:4381px;}
+#t72_5{left:450px;top:4439px;}
+#t73_5{left:502px;top:4498px;}
+#t74_5{left:450px;top:4557px;}
+#t75_5{left:502px;top:4557px;}
+#t76_5{left:850px;top:4557px;}
+#t77_5{left:502px;top:4615px;}
+#t78_5{left:502px;top:4674px;}
+#t79_5{left:450px;top:4767px;}
+#t7a_5{left:450px;top:4826px;}
+#t7b_5{left:502px;top:4826px;}
+#t7c_5{left:975px;top:4826px;}
+#t7d_5{left:1228px;top:4826px;}
+#t7e_5{left:1264px;top:4826px;}
+#t7f_5{left:450px;top:4885px;}
+#t7g_5{left:502px;top:4885px;}
+#t7h_5{left:938px;top:4885px;}
+#t7i_5{left:1109px;top:4885px;}
+#t7j_5{left:1145px;top:4885px;}
+
+.s1_5{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: SZZVHX-HelveticaNeueLTStd-Bd5;
+	color: rgb(0,0,0);
+}
+
+.s3_5{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: MT-Extra5;
+	color: rgb(0,0,0);
+}
+
+.s5_5{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: RRPPTZ-HelveticaNeueLTStd-It5;
+	color: rgb(0,0,0);
+}
+
+.s2_5{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: SZZVHX-HelveticaNeueLTStd-Lt5;
+	color: rgb(0,0,0);
+}
+
+.s6_5{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: RRPPTZ-HelveticaNeueLTStd-BdIt5;
+	color: rgb(0,0,0);
+}
+
+.s4_5{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: RRPPTZ-HelveticaNeueLTStd-Lt5;
+	color: rgb(0,0,0);
+}
+
+</style>
+<!-- End inline CSS -->
+
+<!-- Begin embedded font definitions -->
+<style type="text/css" >
+
+@font-face {
+	font-family: SZZVHX-HelveticaNeueLTStd-Bd5;
+	src: url("5/fonts/SZZVHX-HelveticaNeueLTStd-Bd.otf");
+}
+
+@font-face {
+	font-family: RRPPTZ-HelveticaNeueLTStd-It5;
+	src: url("5/fonts/RRPPTZ-HelveticaNeueLTStd-It.otf");
+}
+
+@font-face {
+	font-family: RRPPTZ-HelveticaNeueLTStd-Lt5;
+	src: url("5/fonts/RRPPTZ-HelveticaNeueLTStd-Lt.otf");
+}
+
+@font-face {
+	font-family: MT-Extra5;
+	src: url("5/fonts/MT-Extra.otf");
+}
+
+@font-face {
+	font-family: SZZVHX-HelveticaNeueLTStd-Lt5;
+	src: url("5/fonts/SZZVHX-HelveticaNeueLTStd-Lt.otf");
+}
+
+@font-face {
+	font-family: RRPPTZ-HelveticaNeueLTStd-BdIt5;
+	src: url("5/fonts/RRPPTZ-HelveticaNeueLTStd-BdIt.otf");
+}
+
+</style>
+<!-- End embedded font definitions -->
+
+<!-- Begin text definitions (Positioned/styled in CSS) -->
+<div class="t">
+<div class="s1_5">
+<div id="t1_5">AMISTAR TOP</div>
+</div>
+<div class="s2_5">
+<div id="t2_5">/	5</div>
+</div>
+<div class="s1_5">
+<div id="t3_5">4.4.14 </div>
+<div id="t4_5">POTATOES</div>
+<div id="t5_5">DOSAGE</div>
+<div id="t6_5">Ground and </div>
+<div id="t7_5">aerial application</div>
+</div>
+<div class="s2_5">
+<div id="t8_5">375	m</div>
+</div>
+<div class="s3_5">
+<div id="t9_5">l</div>
+</div>
+<div class="s2_5">
+<div id="ta_5">/ha</div>
+</div>
+<div class="s1_5">
+<div id="tb_5">CROP / DISEASE</div>
+<div id="tc_5">POTATOES </div>
+<div id="td_5">Early blight</div>
+</div>
+<div class="s4_5">
+<div id="te_5">(</div>
+</div>
+<div class="s5_5">
+<div id="tf_5">Alternaria solani</div>
+</div>
+<div class="s2_5">
+<div id="tg_5">)</div>
+</div>
+<div class="s1_5">
+<div id="th_5">REMARKS:</div>
+</div>
+<div class="s2_5">
+<div id="ti_5">•	 	Apply	 in	 blocks	 of	 two	 (2)	 consecutive	 sprays	 7	 -	 10	 days	</div>
+<div id="tj_5">apart	when	the	weather	favours	the	disease.	</div>
+<div id="tk_5">•	 	Alternatively,	applications	can	be	repeated	at	14	day	intervals,	</div>
+<div id="tl_5">provided	that	these	applications	are	alternated	every	7	days	</div>
+<div id="tm_5">with	other	products	registered	for	early	blight	control.	</div>
+<div id="tn_5">•	 	</div>
+</div>
+<div class="s1_5">
+<div id="to_5">AMISTAR TOP</div>
+</div>
+<div class="s2_5">
+<div id="tp_5">alternated	with	BRAVO	720	in	a	7	day	cycle	</div>
+<div id="tq_5">will	 also	 control	</div>
+</div>
+<div class="s1_5">
+<div id="tr_5">late blight</div>
+</div>
+<div class="s2_5">
+<div id="ts_5">(</div>
+</div>
+<div class="s5_5">
+<div id="tt_5">Phytophthora infestans</div>
+</div>
+<div class="s2_5">
+<div id="tu_5">)	 pre-</div>
+<div id="tv_5">ventatively.</div>
+<div id="tw_5">•	 	Due	 to	 reduced	 efficacy,	 aerial	 application	 is	 only	 recom-</div>
+<div id="tx_5">mended	 when	 prevailing	 conditions	 preclude	 application	 by	</div>
+<div id="ty_5">tractor.</div>
+<div id="tz_5">•	 	Do	 not	 exceed	 six	 (6)	 applications	 of	</div>
+</div>
+<div class="s1_5">
+<div id="t10_5">AMISTAR TOP</div>
+</div>
+<div class="s2_5">
+<div id="t11_5">per	</div>
+<div id="t12_5">season.		</div>
+</div>
+<div class="s1_5">
+<div id="t13_5">Spray volume:</div>
+</div>
+<div class="s2_5">
+<div id="t14_5">•	</div>
+</div>
+<div class="s1_5">
+<div id="t15_5">Tractor application: </div>
+</div>
+<div class="s2_5">
+<div id="t16_5">250	-	750	</div>
+</div>
+<div class="s3_5">
+<div id="t17_5">l</div>
+</div>
+<div class="s2_5">
+<div id="t18_5">water/ha</div>
+<div id="t19_5">•	</div>
+</div>
+<div class="s1_5">
+<div id="t1a_5">Aerial application: </div>
+</div>
+<div class="s2_5">
+<div id="t1b_5">30	-	40</div>
+</div>
+<div class="s3_5">
+<div id="t1c_5">l</div>
+</div>
+<div class="s2_5">
+<div id="t1d_5">water/ha</div>
+</div>
+<div class="s1_5">
+<div id="t1e_5">4.4.15 </div>
+<div id="t1f_5">STRAWBERRIES</div>
+<div id="t1g_5">DOSAGE</div>
+<div id="t1h_5">Ground application</div>
+</div>
+<div class="s2_5">
+<div id="t1i_5">500	-	1000	m</div>
+</div>
+<div class="s3_5">
+<div id="t1j_5">l</div>
+</div>
+<div class="s2_5">
+<div id="t1k_5">/ha</div>
+</div>
+<div class="s1_5">
+<div id="t1l_5">CROP / DISEASE</div>
+<div id="t1m_5">STRAWBERRIES</div>
+<div id="t1n_5">Anthracnose</div>
+</div>
+<div class="s4_5">
+<div id="t1o_5">(</div>
+</div>
+<div class="s5_5">
+<div id="t1p_5">Colletotrichum </div>
+</div>
+<div class="s2_5">
+<div id="t1q_5">spp.)</div>
+</div>
+<div class="s1_5">
+<div id="t1r_5">Leaf rust</div>
+</div>
+<div class="s4_5">
+<div id="t1s_5">(</div>
+</div>
+<div class="s5_5">
+<div id="t1t_5">Phragmidium </div>
+</div>
+<div class="s2_5">
+<div id="t1u_5">spp</div>
+</div>
+<div class="s5_5">
+<div id="t1v_5">.</div>
+</div>
+<div class="s2_5">
+<div id="t1w_5">)</div>
+</div>
+<div class="s1_5">
+<div id="t1x_5">Leaf spot</div>
+</div>
+<div class="s4_5">
+<div id="t1y_5">(</div>
+</div>
+<div class="s5_5">
+<div id="t1z_5">Cercospora fragariae</div>
+</div>
+<div class="s2_5">
+<div id="t20_5">)</div>
+</div>
+<div class="s1_5">
+<div id="t21_5">Powdery mildew</div>
+</div>
+<div class="s4_5">
+<div id="t22_5">(</div>
+</div>
+<div class="s5_5">
+<div id="t23_5">Sphaerotheca pannosa</div>
+</div>
+<div class="s2_5">
+<div id="t24_5">)</div>
+</div>
+<div class="s1_5">
+<div id="t25_5">REMARKS:</div>
+</div>
+<div class="s2_5">
+<div id="t26_5">•	 	Apply	 as	 part	 of	 a	 protectant	 programme	 before	 disease	</div>
+<div id="t27_5">occurs.		</div>
+<div id="t28_5">•	 	Apply	no	more	than	two	(2)	consecutive	sprays	7	to	10	days	</div>
+<div id="t29_5">apart.	</div>
+</div>
+<div class="s1_5">
+<div id="t2a_5">4.4.10  NUTS </div>
+</div>
+<div class="s2_5">
+<div id="t2b_5">(Cashew,	Macadamia)</div>
+</div>
+<div class="s1_5">
+<div id="t2c_5">DOSAGE</div>
+<div id="t2d_5">Ground and </div>
+<div id="t2e_5">aerial application</div>
+</div>
+<div class="s2_5">
+<div id="t2f_5">500	-	1000	m</div>
+</div>
+<div class="s3_5">
+<div id="t2g_5">l</div>
+</div>
+<div class="s2_5">
+<div id="t2h_5">/ha</div>
+</div>
+<div class="s1_5">
+<div id="t2i_5">CROP / DISEASE</div>
+<div id="t2j_5">CASHEW, MACADAMIA</div>
+</div>
+<div class="s2_5">
+<div id="t2k_5">Foliar	diseases</div>
+</div>
+<div class="s1_5">
+<div id="t2l_5">REMARKS:</div>
+</div>
+<div class="s2_5">
+<div id="t2m_5">•	 	Apply	 as	 part	 of	 a	 protectant	 programme	 before	 disease	</div>
+<div id="t2n_5">occurs.		</div>
+<div id="t2o_5">•	 	Apply	no	more	than	two	(2)	consecutive	sprays	10	to	14	days	</div>
+<div id="t2p_5">apart.	</div>
+<div id="t2q_5">•	 	Do	 not	 make	 more	 than	 four	 (4)	 applications	 of	</div>
+</div>
+<div class="s1_5">
+<div id="t2r_5">AMISTAR </div>
+<div id="t2s_5">TOP</div>
+</div>
+<div class="s2_5">
+<div id="t2t_5">per	season.</div>
+<div id="t2u_5">•	 	Apply	in	sufficient	volume	of	water	to	ensure	adequate	cover-</div>
+<div id="t2v_5">age.</div>
+<div id="t2w_5">•	 	</div>
+</div>
+<div class="s1_5">
+<div id="t2x_5">AMISTAR TOP </div>
+</div>
+<div class="s2_5">
+<div id="t2y_5">can	be	used	in	a	spray	programme	with	other	</div>
+<div id="t2z_5">registered	products	not	containing	azoxystrobin	or	difenoco-</div>
+<div id="t30_5">nazole.	</div>
+<div id="t31_5">•	 Do	not	use	with	an	adjuvant.</div>
+</div>
+<div class="s1_5">
+<div id="t32_5">Spray volume:</div>
+</div>
+<div class="s2_5">
+<div id="t33_5">•	</div>
+</div>
+<div class="s1_5">
+<div id="t34_5">Tractor application: </div>
+</div>
+<div class="s2_5">
+<div id="t35_5">250	-	1000	</div>
+</div>
+<div class="s3_5">
+<div id="t36_5">l</div>
+</div>
+<div class="s2_5">
+<div id="t37_5">water/ha</div>
+<div id="t38_5">•	</div>
+</div>
+<div class="s1_5">
+<div id="t39_5">Aerial application: </div>
+</div>
+<div class="s2_5">
+<div id="t3a_5">30	-	40</div>
+</div>
+<div class="s3_5">
+<div id="t3b_5">l</div>
+</div>
+<div class="s2_5">
+<div id="t3c_5">water/ha</div>
+</div>
+<div class="s1_5">
+<div id="t3d_5">4.4.13 </div>
+<div id="t3e_5">PEPPERS </div>
+</div>
+<div class="s2_5">
+<div id="t3f_5">(Bell/sweet/chilli	 pepper,	 paprika,	 pimento,	</div>
+<div id="t3g_5">piquante)</div>
+</div>
+<div class="s1_5">
+<div id="t3h_5">DOSAGE</div>
+<div id="t3i_5">Ground and </div>
+<div id="t3j_5">aerial application</div>
+</div>
+<div class="s2_5">
+<div id="t3k_5">580	-	1000	m</div>
+</div>
+<div class="s3_5">
+<div id="t3l_5">l</div>
+</div>
+<div class="s2_5">
+<div id="t3m_5">/ha</div>
+</div>
+<div class="s1_5">
+<div id="t3n_5">Ground application</div>
+</div>
+<div class="s2_5">
+<div id="t3o_5">250	m</div>
+</div>
+<div class="s3_5">
+<div id="t3p_5">l</div>
+</div>
+<div class="s2_5">
+<div id="t3q_5">/100	</div>
+</div>
+<div class="s3_5">
+<div id="t3r_5">l</div>
+</div>
+<div class="s2_5">
+<div id="t3s_5">water</div>
+</div>
+<div class="s1_5">
+<div id="t3t_5">CROP / DISEASE</div>
+<div id="t3u_5">PEPPERS</div>
+<div id="t3v_5">Cercospora leaf spot</div>
+</div>
+<div class="s4_5">
+<div id="t3w_5">(</div>
+</div>
+<div class="s5_5">
+<div id="t3x_5">Cercospora </div>
+</div>
+<div class="s2_5">
+<div id="t3y_5">spp.)</div>
+</div>
+<div class="s1_5">
+<div id="t3z_5">Powdery mildew</div>
+</div>
+<div class="s4_5">
+<div id="t40_5">(</div>
+</div>
+<div class="s5_5">
+<div id="t41_5">Leveillula taurica</div>
+</div>
+<div class="s2_5">
+<div id="t42_5">)</div>
+</div>
+<div class="s1_5">
+<div id="t43_5">REMARKS:</div>
+</div>
+<div class="s2_5">
+<div id="t44_5">•	 	Apply	up	to	two	(2)	consecutive	sprays	7	days	apart	starting	</div>
+<div id="t45_5">at	flower	initiation.</div>
+<div id="t46_5">•	 	Applications	can	be	repeated	at	10	day	intervals,	depending	</div>
+<div id="t47_5">on	the	disease	pressure	and	spray	programme	being	used.	If	</div>
+<div id="t48_5">a	10	day	interval	is	used,	ensure	that	an	alternate	product	with	</div>
+<div id="t49_5">a	different	mode	of	action	is	used	after	7	days,	particularly	if	</div>
+<div id="t4a_5">weather	conditions	are	conducive	to	disease	development.</div>
+<div id="t4b_5">•	 	Apply	in	sufficient	water	volumes	to	ensure	adequate	cover-</div>
+<div id="t4c_5">age.</div>
+<div id="t4d_5">•	 	Do	 not	 make	 more	 than	 three	 (3)	 applications	 of	</div>
+</div>
+<div class="s1_5">
+<div id="t4e_5">AMISTAR </div>
+<div id="t4f_5">TOP</div>
+</div>
+<div class="s2_5">
+<div id="t4g_5">per	season.</div>
+<div id="t4h_5">•	 	The	 addition	 of	 a	 spreading/penetrating	 type	 adjuvant	 may	</div>
+<div id="t4i_5">enhance	efficacy.</div>
+</div>
+<div class="s1_5">
+<div id="t4j_5">Spray volume: </div>
+</div>
+<div class="s2_5">
+<div id="t4k_5">•	</div>
+</div>
+<div class="s1_5">
+<div id="t4l_5">Tractor application:</div>
+</div>
+<div class="s2_5">
+<div id="t4m_5">Use	at	least	500	</div>
+</div>
+<div class="s3_5">
+<div id="t4n_5">l</div>
+</div>
+<div class="s2_5">
+<div id="t4o_5">water/ha</div>
+<div id="t4p_5">•	</div>
+</div>
+<div class="s1_5">
+<div id="t4q_5">Aerial application: </div>
+</div>
+<div class="s2_5">
+<div id="t4r_5">30	-	40</div>
+</div>
+<div class="s3_5">
+<div id="t4s_5">l</div>
+</div>
+<div class="s2_5">
+<div id="t4t_5">water/ha	</div>
+</div>
+<div class="s1_5">
+<div id="t4u_5">4.4.11 </div>
+<div id="t4v_5">NUTS</div>
+</div>
+<div class="s2_5">
+<div id="t4w_5">(Pecans)</div>
+</div>
+<div class="s1_5">
+<div id="t4x_5">DOSAGE</div>
+<div id="t4y_5">Ground application</div>
+</div>
+<div class="s2_5">
+<div id="t4z_5">500	-	1000	m</div>
+</div>
+<div class="s3_5">
+<div id="t50_5">l</div>
+</div>
+<div class="s2_5">
+<div id="t51_5">/ha</div>
+</div>
+<div class="s1_5">
+<div id="t52_5">CROP / DISEASE</div>
+<div id="t53_5">PECANS</div>
+<div id="t54_5">Downy spot</div>
+</div>
+<div class="s4_5">
+<div id="t55_5">(</div>
+</div>
+<div class="s5_5">
+<div id="t56_5">Mycosphaerella caryigena</div>
+</div>
+<div class="s2_5">
+<div id="t57_5">)</div>
+</div>
+<div class="s1_5">
+<div id="t58_5">Pecan scab</div>
+</div>
+<div class="s4_5">
+<div id="t59_5">(</div>
+</div>
+<div class="s5_5">
+<div id="t5a_5">Cladosporium caryigenum</div>
+</div>
+<div class="s2_5">
+<div id="t5b_5">)</div>
+</div>
+<div class="s1_5">
+<div id="t5c_5">Powdery mildew</div>
+</div>
+<div class="s4_5">
+<div id="t5d_5">(</div>
+</div>
+<div class="s5_5">
+<div id="t5e_5">Mycosphaerella </div>
+</div>
+<div class="s2_5">
+<div id="t5f_5">spp</div>
+</div>
+<div class="s5_5">
+<div id="t5g_5">.</div>
+</div>
+<div class="s2_5">
+<div id="t5h_5">)</div>
+</div>
+<div class="s1_5">
+<div id="t5i_5">REMARKS:</div>
+</div>
+<div class="s2_5">
+<div id="t5j_5">•	 	Apply	 as	 part	 of	 a	 protectant	 programme	 before	 disease	</div>
+<div id="t5k_5">occurs.		</div>
+<div id="t5l_5">•	 	Apply	no	more	than	two	(2)	consecutive	sprays	10	to	14	days	</div>
+<div id="t5m_5">apart	starting	at	flower	initiation.</div>
+<div id="t5n_5">•	 	Do	 not	 make	 more	 than	 four	 (4)	 applications	 of	</div>
+</div>
+<div class="s1_5">
+<div id="t5o_5">AMISTAR </div>
+<div id="t5p_5">TOP</div>
+</div>
+<div class="s2_5">
+<div id="t5q_5">per	season.</div>
+<div id="t5r_5">•	 	Apply	in	sufficient	volume	of	water	to	ensure	adequate	cover-</div>
+<div id="t5s_5">age.</div>
+<div id="t5t_5">•	 	</div>
+</div>
+<div class="s1_5">
+<div id="t5u_5">AMISTAR TOP </div>
+</div>
+<div class="s2_5">
+<div id="t5v_5">can	be	used	in	a	spray	programme	with	other	</div>
+<div id="t5w_5">registered	products	not	containing	azoxystrobin	or	difenoco-</div>
+<div id="t5x_5">nazole.		</div>
+</div>
+<div class="s1_5">
+<div id="t5y_5">Spray volume: </div>
+</div>
+<div class="s2_5">
+<div id="t5z_5">•	</div>
+</div>
+<div class="s1_5">
+<div id="t60_5">Tractor application: </div>
+</div>
+<div class="s2_5">
+<div id="t61_5">250	-	1000	</div>
+</div>
+<div class="s3_5">
+<div id="t62_5">l</div>
+</div>
+<div class="s2_5">
+<div id="t63_5">water/ha</div>
+<div id="t64_5">•	</div>
+</div>
+<div class="s1_5">
+<div id="t65_5">Aerial application: </div>
+</div>
+<div class="s2_5">
+<div id="t66_5">30	-	40</div>
+</div>
+<div class="s3_5">
+<div id="t67_5">l</div>
+</div>
+<div class="s2_5">
+<div id="t68_5">water/ha</div>
+</div>
+<div class="s1_5">
+<div id="t69_5">4.4.12 </div>
+<div id="t6a_5">NUTS </div>
+</div>
+<div class="s2_5">
+<div id="t6b_5">(Pistachio)</div>
+</div>
+<div class="s1_5">
+<div id="t6c_5">DOSAGE</div>
+<div id="t6d_5">Ground and </div>
+<div id="t6e_5">aerial application</div>
+</div>
+<div class="s2_5">
+<div id="t6f_5">500	-	1000	m</div>
+</div>
+<div class="s3_5">
+<div id="t6g_5">l</div>
+</div>
+<div class="s2_5">
+<div id="t6h_5">/ha</div>
+</div>
+<div class="s1_5">
+<div id="t6i_5">CROP / DISEASE</div>
+<div id="t6j_5">PISTACHIO</div>
+</div>
+<div class="s6_5">
+<div id="t6k_5">Alternaria</div>
+</div>
+<div class="s1_5">
+<div id="t6l_5">late blight</div>
+</div>
+<div class="s4_5">
+<div id="t6m_5">(</div>
+</div>
+<div class="s5_5">
+<div id="t6n_5">Alternaria spp.</div>
+</div>
+<div class="s2_5">
+<div id="t6o_5">)</div>
+</div>
+<div class="s1_5">
+<div id="t6p_5">Panicle and shoot blight</div>
+</div>
+<div class="s4_5">
+<div id="t6q_5">(</div>
+</div>
+<div class="s5_5">
+<div id="t6r_5">Botryosphaeria dothidea</div>
+</div>
+<div class="s2_5">
+<div id="t6s_5">)</div>
+</div>
+<div class="s1_5">
+<div id="t6t_5">REMARKS:</div>
+</div>
+<div class="s2_5">
+<div id="t6u_5">•	 	Apply	 as	 part	 of	 a	 protectant	 programme	 before	 disease	</div>
+<div id="t6v_5">occurs.		</div>
+<div id="t6w_5">•	 	Apply	no	more	than	two	(2)	consecutive	sprays	10	to	14	days	</div>
+<div id="t6x_5">apart	starting	at	flower	initiation.</div>
+<div id="t6y_5">•	 	Do	 not	 make	 more	 than	 four	 (4)	 applications	 of	</div>
+</div>
+<div class="s1_5">
+<div id="t6z_5">AMISTAR </div>
+<div id="t70_5">TOP</div>
+</div>
+<div class="s2_5">
+<div id="t71_5">per	season.</div>
+<div id="t72_5">•	 	Apply	in	sufficient	volume	of	water	to	ensure	adequate	cover-</div>
+<div id="t73_5">age.</div>
+<div id="t74_5">•	 	</div>
+</div>
+<div class="s1_5">
+<div id="t75_5">AMISTAR TOP </div>
+</div>
+<div class="s2_5">
+<div id="t76_5">can	be	used	in	a	spray	programme	with	other	</div>
+<div id="t77_5">registered	products	not	containing	azoxystrobin	or	difenoco-</div>
+<div id="t78_5">nazole.	</div>
+</div>
+<div class="s1_5">
+<div id="t79_5">Spray volume: </div>
+</div>
+<div class="s2_5">
+<div id="t7a_5">•	</div>
+</div>
+<div class="s1_5">
+<div id="t7b_5">Tractor application: </div>
+</div>
+<div class="s2_5">
+<div id="t7c_5">250	-	1000	</div>
+</div>
+<div class="s3_5">
+<div id="t7d_5">l</div>
+</div>
+<div class="s2_5">
+<div id="t7e_5">water/ha</div>
+<div id="t7f_5">•	</div>
+</div>
+<div class="s1_5">
+<div id="t7g_5">Aerial application: </div>
+</div>
+<div class="s2_5">
+<div id="t7h_5">30	-	40</div>
+</div>
+<div class="s3_5">
+<div id="t7i_5">l</div>
+</div>
+<div class="s2_5">
+<div id="t7j_5">water/ha</div>
+</div>
+</div>
+<!-- End text definitions -->
+
+<!-- Begin page background -->
+<div id="pg5Overlay" style="width:100%; height:100%; position:absolute; z-index:0; background-color:rgba(0,0,0,0);"></div>
+<div id="pg5"><img src="5/5.png" id="pdf5" style="width:909px; height:1286px; background-color:white;"/></div>
+
+<!-- End page background -->
+
+<!-- Begin page loading JS -->
+<script type="text/javascript">
+var f5 = [['t1_5',338],['t6_5',275],['t7_5',401],['tb_5',401],['td_5',262],['tf_5',347],['ti_5',1359],['tk_5',1359],['tn_5',65],['to_5',339],['tq_5',359],['tr_5',243],['tt_5',514],['tu_5',125],['tw_5',1345],['tx_5',1307],['tz_5',893],['t10_5',347],['t13_5',331],['t15_5',457],['t1a_5',420],['t1h_5',446],['t1l_5',401],['t1r_5',207],['t1x_5',219],['t1z_5',457],['t21_5',386],['t23_5',504],['t26_5',1359],['t28_5',1359],['t2a_5',311],['t2d_5',275],['t2e_5',401],['t2i_5',401],['t2j_5',553],['t2m_5',1359],['t2o_5',1359],['t2q_5',1113],['t2u_5',1345],['t2w_5',65],['t2x_5',335],['t31_5',659],['t32_5',331],['t34_5',457],['t39_5',420],['t3f_5',956],['t3i_5',275],['t3j_5',401],['t3n_5',446],['t3t_5',401],['t3v_5',492],['t3z_5',386],['t41_5',360],['t44_5',1359],['t46_5',1359],['t4b_5',1345],['t4d_5',1116],['t4h_5',1359],['t4j_5',331],['t4l_5',457],['t4q_5',420],['t4y_5',446],['t52_5',401],['t54_5',278],['t56_5',565],['t58_5',272],['t5a_5',572],['t5c_5',386],['t5j_5',1359],['t5l_5',1359],['t5n_5',1113],['t5r_5',1345],['t5t_5',65],['t5u_5',335],['t5y_5',331],['t60_5',457],['t65_5',420],['t6d_5',275],['t6e_5',401],['t6i_5',401],['t6l_5',232],['t6n_5',316],['t6p_5',566],['t6r_5',534],['t6u_5',1359],['t6w_5',1359],['t6y_5',1113],['t72_5',1345],['t74_5',65],['t75_5',335],['t79_5',331],['t7b_5',457],['t7g_5',420]];
+var c5 = 0;
+function fontAdjustments5(){;
+	if (c5<f5.length) {
+		adjustWordSpacing(f5[c5][0],f5[c5][1]);
+		c5++;
+		if (c5%10 == 0) {
+			setTimeout(function(){fontAdjustments5()},0);
+		} else {
+			fontAdjustments5();
+		}
+	}
+};
+function load5(){
+	var timeout = 100;
+	if (navigator.userAgent.match(/iPhone|iPad|iPod|Android/i)) timeout = 500;
+	setTimeout(fontAdjustments5,timeout);
+}
+</script>
+<!-- End page loading JS -->
+
+</div>
+
+</div>
+<div id="brand" style="margin:0 auto; width:94px; padding:5px; clear: both;">
+<a href="../../index.html">
+<img title="PDF to HTML5 Conversion by IDRsolutions" alt="PDF to HTML5 Conversion by IDRsolutions" style="border:0;" src="icons/logo.png" />
+</a>
+</div>
+<script type="text/javascript">
+	makeNavBar(6,5,909,1286,0);
+</script>
+</body>
+</html>

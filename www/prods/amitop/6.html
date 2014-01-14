@@ -1,0 +1,974 @@
+<!DOCTYPE html >
+<html lang="en">
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+<meta charset="utf-8" />
+<title>AMISTAR_Top___ENG_2012_08_01 Page6</title>
+</head>
+
+<body style="background-color:#919191;">
+
+<style type="text/css">
+    body {
+        margin:0;
+    }
+
+    #nav button {
+        width: 100px;
+        height: 30px;
+        vertical-align: middle;
+    }
+
+    #nav select {
+        width: 100px;
+        height: 27px;
+        vertical-align: middle;
+    }
+
+</style>
+
+<script type="text/javascript">
+
+    var zoom = 1;
+    var width = 0;
+    var height = 0;
+    var curPg = 0;
+    var pgCount = 0;
+	var jpedal;
+	var type;
+
+    function makeNavBar(pageCount, curPage, w, h, t) {
+	
+		//type 0 = single pages
+		//type 1 = splitspreads
+
+        pgCount = pageCount;
+        curPg = curPage;
+        width = w;
+        height = h;
+		type = t;
+        var opt;
+
+        //Populate the goto dropdown with page numbers
+        var goBtn = d("goBtn");
+		
+		if (type == 1) {//splitspreads
+			jpedal = d("container" + curPage);
+			
+			opt = document.createElement('option');
+            opt.value = 1;
+            opt.innerHTML = "Page " + 1;
+			goBtn.appendChild(opt);
+			
+			for (var i = 2; i <= pgCount; i += 2) {
+			
+				opt = document.createElement('option');
+				opt.value = i;
+				var text;
+				if (i != pgCount || pgCount % 2 == 1) {
+					text = "Page " + i + "-" + (i+1);
+				} else {
+					text = "Page " + i;
+				}
+				opt.innerHTML = text;
+				goBtn.appendChild(opt);
+			}
+			
+			goBtn.selectedIndex = curPage/2;
+			
+		} else {
+			jpedal = d("jpedal");
+			
+			for (var i = 1; i <= pgCount; i++) {
+				opt = document.createElement('option');
+				opt.value = i;
+				opt.innerHTML = "Page " + i;
+				goBtn.appendChild(opt);
+			}
+			goBtn.selectedIndex = curPage - 1;
+		}
+		
+
+
+        jpedal.style.transformOrigin = "top left";
+        jpedal.style.webkitTransformOrigin = "top left";
+        jpedal.style.msTransformOrigin = "top left";
+        jpedal.style.mozTransformOrigin = "top left";
+        jpedal.style.oTransformOrigin = "top left";
+        jpedal.style.margin = "0";
+
+        d("container").style.width = width + "px";
+        d("container").style.height = height + "px";
+
+        var doc = document.URL;
+        var jumper = "?zoom=";
+        var jumIdx = doc.toString().indexOf(jumper);
+        var zm = parseFloat(doc.substr(jumIdx + jumper.length));
+		var zoomBtn = d("zoomBtn");
+		if (width > getWidth()) {
+			zoomBtn.options[1].text = "100%";
+			zoomBtn.options[2].text = "Fit Width (Reset)";
+		}
+
+        if (!isNaN(zm) && zm > 0 && zm != 1) {
+            zoom = zm;
+            updateZoom();
+        } else if (width > getWidth()) {
+			zoomBtn.selectedIndex = 2;
+			zoomUpdate();
+		}
+    }
+	
+	function getWidth() {
+		var w = 0;
+		if (self.innerHeight) {
+			w = self.innerWidth;
+		} else if (document.documentElement && document.documentElement.clientHeight) {
+			w = document.documentElement.clientWidth;
+		} else if (document.body) {
+			w = document.body.clientWidth;
+		}
+		return w;
+	}
+
+    function updateZoom() {
+        jpedal.style.transform = "scale(" + zoom + ")";
+        jpedal.style.WebkitTransform = "scale(" + zoom + ")";
+        jpedal.style.msTransform = "scale(" + zoom + ")";
+        jpedal.style.MozTransform = "scale(" + zoom + ")";
+        jpedal.style.OTransform = "scale(" + zoom + ")";
+        d("container").style.width = width * zoom + "px";
+        d("container").style.height = height * zoom + "px";
+
+        var percent = Math.floor(zoom*100) + "%";
+        d("zoomBtn").options[0].innerHTML = percent;
+        d("zoomBtn").selectedIndex = 0;
+    }
+
+    function zoomIn() {
+        zoom = zoom*1.2;
+        updateZoom();
+    }
+
+    function zoomUpdate() {
+        var index = d("zoomBtn").selectedIndex;
+
+        if (index == 0) {
+            //Always current. Do nothing
+        } else if (index == 1) {//Reset
+            zoom = 1;
+        } else if (index == 2) {//Fit Width
+            var winWidth = window.innerWidth;
+            zoom = (winWidth - 40) / width;
+        } else if (index == 3) {//Fit Height
+            var winHeight = window.innerHeight;
+            zoom = (winHeight - 60) / height;
+        } else if (index == 4) {//Fit Page
+            var winWidth = window.innerWidth;
+            var winHeight = window.innerHeight;
+            var wScale = (winWidth - 40) / width;
+            var hScale = (winHeight - 60) / height;
+
+            if (wScale > hScale) {
+                zoom = hScale;
+            } else {
+                zoom = wScale;
+            }
+        }
+
+        updateZoom();
+    }
+
+    function zoomOut() {
+        zoom = zoom/1.2;
+        updateZoom();
+    }
+
+    function goToPage() {
+		var pg;
+		if (type == 0) {
+			pg = d("goBtn").selectedIndex + 1;
+		} else {
+			pg = (d("goBtn").selectedIndex * 2) + 1;
+		}
+        if (pg != curPg) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(pg, pgCount);
+			} else {
+				link = getMagazinePageHref(pg, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function getPageHref(page, count) {
+        var iWithLeadingZeros = page.toString();
+        var leadingZerosNeeded = count.toString().length - iWithLeadingZeros.length;
+
+        if(page === 1) {
+            iWithLeadingZeros = "index"
+        } else {
+            for(var n = 0; n < leadingZerosNeeded; n ++) {
+                iWithLeadingZeros = "0" + iWithLeadingZeros;
+            }
+        }
+        return iWithLeadingZeros;
+    }
+	
+	function getMagazinePageHref(page, count) {
+		if(page === 1) return getPageHref(page, count);
+		else if(page % 2 === 0) {
+			if(page === count)
+				return getPageHref(page, count);
+			else
+				return getPageHref(page, count) + "-" + getPageHref(page + 1, count);
+			}
+				else {
+			return getPageHref(page-1, count) + "-" + getPageHref(page, count);
+		}
+	}
+
+    function next() {
+        if (curPg < pgCount) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(curPg + 1, pgCount);
+			} else {
+				if (pgCount % 2 != 0 && curPg + 1 == pgCount) return;
+				link = getMagazinePageHref(curPg + 2, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function prev() {
+        if (curPg > 1) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(curPg - 1, pgCount);
+			} else {
+				link = getMagazinePageHref(curPg - 1, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function d(id){
+        return document.getElementById(id);
+    }
+
+</script>
+
+<div id="nav" style="background-color:#919191; padding-top: 10px; text-align: center; position: fixed; width: 100%; height: 40px; z-index:999;">
+    <button onclick="prev()" id="prev">Prev &lt;&lt;</button>
+    <select id="goBtn" onchange="goToPage()">
+
+    </select>
+    <button onclick="next()" id="next" style="margin-right:30px;">&gt;&gt; Next</button>
+
+    <button onclick="zoomOut()" id="zoomOut">Zoom Out</button>
+    <select id="zoomBtn" onchange="zoomUpdate()">
+        <option value="0">100%</option>
+        <option value="1">100% (Reset)</option>
+        <option value="2">Fit Width</option>
+        <option value="3">Fit Height</option>
+        <option value="4">Fit Page</option>
+
+    </select>
+    <button onclick="zoomIn()" id="zoomIn">Zoom In</button>
+</div>
+<div style="position:relative; width: 100%; height: 50px;"></div>
+
+<div id="container" style="margin: 0 auto 10px;">
+</script>
+
+
+
+<div id="jpedal" style="position:relative; width: 909px; height: 1286px; overflow: hidden; margin: 0 auto; box-shadow: 0 2px 6px rgba(100, 100, 100, 0.5);">
+
+<!-- Begin shared CSS values -->
+<!--[if lt IE 9]><style type="text/css">.t div div{zoom: 25%;}</style><![endif]-->
+<style type="text/css" >
+.t {
+	position: absolute;
+	-webkit-transform-origin: top left;
+	-moz-transform-origin: top left;
+	-o-transform-origin: top left;
+	-ms-transform-origin: top left;
+	-webkit-transform: scale(0.25);
+	-moz-transform: scale(0.25);
+	-o-transform: scale(0.25);
+	-ms-transform: scale(0.25);
+	z-index: 1;
+}
+.t div div {
+	position:absolute;
+	white-space:nowrap;
+	overflow:visible;
+}
+</style>
+<!-- End shared CSS values -->
+
+<!-- Begin shared JS -->
+<script type="text/javascript">
+
+// Ensure that we're not replacing any onload events
+function addLoadEvent(func) {
+	var oldonload = window.onload;
+	if (typeof window.onload != 'function') {
+		window.onload = func;
+	} else {
+		window.onload = function() {
+			if (oldonload) {
+				oldonload();
+			}
+			func();
+		}
+	}
+}
+addLoadEvent(function(){load6();});
+
+function adjustWordSpacing(divName,actualWidth) {
+
+	var el = document.getElementById(divName);
+	var rawWidth=el.offsetWidth;
+	if(actualWidth>rawWidth){
+		var spacing= 0;
+		var s=spacing+'px';
+		el.style.wordSpacing = s;
+		rawWidth=el.offsetWidth;
+
+		var diff=rawWidth-actualWidth;
+		if(diff<0)
+			diff=-diff;
+		var newDiff=diff-1;
+
+		while (spacing<40 && (newDiff===diff || newDiff<diff)){
+
+			diff=newDiff;
+			spacing= spacing+1;
+
+			s=spacing+'px';
+			el.style.wordSpacing = s;
+
+			newDiff=el.offsetWidth-actualWidth;
+			if(newDiff<0)
+				newDiff=-newDiff;
+		}
+		if(diff<=newDiff)
+			spacing=spacing-1;
+		s=spacing+'px';
+		el.style.wordSpacing =s;
+	}
+}
+
+</script>
+<!-- End shared JS -->
+
+
+<!-- Begin inline CSS -->
+<style type="text/css" >
+
+#t1_6{left:1523px;top:187px;}
+#t2_6{left:1883px;top:187px;}
+#t3_6{left:1883px;top:2387px;}
+#t4_6{left:2078px;top:2394px;}
+#t5_6{left:2108px;top:2387px;}
+#t6_6{left:2348px;top:2394px;}
+#t7_6{left:2391px;top:2387px;}
+#t8_6{left:2353px;top:2438px;}
+#t9_6{left:1897px;top:2592px;}
+#ta_6{left:2400px;top:2592px;}
+#tb_6{left:2108px;top:2644px;}
+#tc_6{left:2804px;top:2798px;}
+#td_6{left:269px;top:300px;}
+#te_6{left:690px;top:300px;}
+#tf_6{left:277px;top:428px;}
+#tg_6{left:277px;top:486px;}
+#th_6{left:1400px;top:486px;}
+#ti_6{left:329px;top:545px;}
+#tj_6{left:445px;top:545px;}
+#tk_6{left:277px;top:604px;}
+#tl_6{left:329px;top:662px;}
+#tm_6{left:277px;top:721px;}
+#tn_6{left:329px;top:721px;}
+#to_6{left:677px;top:721px;}
+#tp_6{left:329px;top:780px;}
+#tq_6{left:329px;top:838px;}
+#tr_6{left:277px;top:956px;}
+#ts_6{left:277px;top:1014px;}
+#tt_6{left:329px;top:1014px;}
+#tu_6{left:802px;top:1014px;}
+#tv_6{left:1055px;top:1014px;}
+#tw_6{left:1091px;top:1014px;}
+#tx_6{left:277px;top:1073px;}
+#ty_6{left:329px;top:1073px;}
+#tz_6{left:764px;top:1073px;}
+#t10_6{left:936px;top:1073px;}
+#t11_6{left:972px;top:1073px;}
+#t12_6{left:269px;top:1257px;}
+#t13_6{left:446px;top:1257px;}
+#t14_6{left:1202px;top:1380px;}
+#t15_6{left:1082px;top:1556px;}
+#t16_6{left:1094px;top:1615px;}
+#t17_6{left:1231px;top:1615px;}
+#t18_6{left:1252px;top:1615px;}
+#t19_6{left:1365px;top:1615px;}
+#t1a_6{left:1401px;top:1615px;}
+#t1b_6{left:417px;top:1380px;}
+#t1c_6{left:288px;top:1497px;}
+#t1d_6{left:288px;top:1556px;}
+#t1e_6{left:288px;top:1615px;}
+#t1f_6{left:300px;top:1615px;}
+#t1g_6{left:647px;top:1615px;}
+#t1h_6{left:277px;top:1755px;}
+#t1i_6{left:277px;top:1814px;}
+#t1j_6{left:329px;top:1872px;}
+#t1k_6{left:277px;top:1931px;}
+#t1l_6{left:329px;top:1990px;}
+#t1m_6{left:329px;top:2048px;}
+#t1n_6{left:277px;top:2107px;}
+#t1o_6{left:329px;top:2107px;}
+#t1p_6{left:684px;top:2107px;}
+#t1q_6{left:329px;top:2166px;}
+#t1r_6{left:702px;top:2166px;}
+#t1s_6{left:971px;top:2166px;}
+#t1t_6{left:983px;top:2166px;}
+#t1u_6{left:1498px;top:2166px;}
+#t1v_6{left:329px;top:2224px;}
+#t1w_6{left:277px;top:2283px;}
+#t1x_6{left:1134px;top:2283px;}
+#t1y_6{left:1506px;top:2283px;}
+#t1z_6{left:329px;top:2342px;}
+#t20_6{left:329px;top:2400px;}
+#t21_6{left:329px;top:2459px;}
+#t22_6{left:277px;top:2576px;}
+#t23_6{left:277px;top:2635px;}
+#t24_6{left:329px;top:2635px;}
+#t25_6{left:802px;top:2635px;}
+#t26_6{left:1055px;top:2635px;}
+#t27_6{left:1091px;top:2635px;}
+#t28_6{left:1828px;top:300px;}
+#t29_6{left:2005px;top:300px;}
+#t2a_6{left:2483px;top:300px;}
+#t2b_6{left:2761px;top:423px;}
+#t2c_6{left:2746px;top:599px;}
+#t2d_6{left:2664px;top:657px;}
+#t2e_6{left:2673px;top:716px;}
+#t2f_6{left:2967px;top:716px;}
+#t2g_6{left:2988px;top:716px;}
+#t2h_6{left:1976px;top:423px;}
+#t2i_6{left:1847px;top:540px;}
+#t2j_6{left:1847px;top:599px;}
+#t2k_6{left:1847px;top:657px;}
+#t2l_6{left:1859px;top:657px;}
+#t2m_6{left:2407px;top:657px;}
+#t2n_6{left:1847px;top:716px;}
+#t2o_6{left:1847px;top:775px;}
+#t2p_6{left:1859px;top:775px;}
+#t2q_6{left:2080px;top:775px;}
+#t2r_6{left:1847px;top:833px;}
+#t2s_6{left:1847px;top:892px;}
+#t2t_6{left:1859px;top:892px;}
+#t2u_6{left:2240px;top:892px;}
+#t2v_6{left:1847px;top:951px;}
+#t2w_6{left:2058px;top:951px;}
+#t2x_6{left:1847px;top:1009px;}
+#t2y_6{left:1859px;top:1009px;}
+#t2z_6{left:2056px;top:1009px;}
+#t30_6{left:1836px;top:1149px;}
+#t31_6{left:1836px;top:1207px;}
+#t32_6{left:1888px;top:1266px;}
+#t33_6{left:1836px;top:1325px;}
+#t34_6{left:1888px;top:1383px;}
+#t35_6{left:1836px;top:1442px;}
+#t36_6{left:2959px;top:1442px;}
+#t37_6{left:1888px;top:1501px;}
+#t38_6{left:2004px;top:1501px;}
+#t39_6{left:1836px;top:1559px;}
+#t3a_6{left:1888px;top:1618px;}
+#t3b_6{left:1836px;top:1677px;}
+#t3c_6{left:1888px;top:1677px;}
+#t3d_6{left:2236px;top:1677px;}
+#t3e_6{left:1888px;top:1735px;}
+#t3f_6{left:1888px;top:1794px;}
+#t3g_6{left:1836px;top:1853px;}
+#t3h_6{left:1888px;top:1911px;}
+#t3i_6{left:1836px;top:1970px;}
+#t3j_6{left:1836px;top:2087px;}
+#t3k_6{left:1836px;top:2146px;}
+#t3l_6{left:1888px;top:2146px;}
+#t3m_6{left:2361px;top:2146px;}
+#t3n_6{left:2614px;top:2146px;}
+#t3o_6{left:2650px;top:2146px;}
+#t3p_6{left:1836px;top:2205px;}
+#t3q_6{left:1888px;top:2205px;}
+#t3r_6{left:2323px;top:2205px;}
+#t3s_6{left:2495px;top:2205px;}
+#t3t_6{left:2531px;top:2205px;}
+
+.s4_6{
+	FONT-SIZE: 21px;
+	FONT-FAMILY: SZZVHX-HelveticaNeueLTStd-Bd6;
+	color: rgb(0,0,0);
+}
+
+.s1_6{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: SZZVHX-HelveticaNeueLTStd-Bd6;
+	color: rgb(0,0,0);
+}
+
+.s6_6{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: MT-Extra6;
+	color: rgb(0,0,0);
+}
+
+.s8_6{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: RRPPTZ-HelveticaNeueLTStd-It6;
+	color: rgb(0,0,0);
+}
+
+.s2_6{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: SZZVHX-HelveticaNeueLTStd-Lt6;
+	color: rgb(0,0,0);
+}
+
+.s3_6{
+	FONT-SIZE: 42px;
+	FONT-FAMILY: SZZVHX-HelveticaNeueLTStd-Bd6;
+	color: rgb(0,0,0);
+}
+
+.s9_6{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: RRPPTZ-HelveticaNeueLTStd-BdIt6;
+	color: rgb(0,0,0);
+}
+
+.s7_6{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: RRPPTZ-HelveticaNeueLTStd-Lt6;
+	color: rgb(0,0,0);
+}
+
+.s5_6{
+	FONT-SIZE: 42px;
+	FONT-FAMILY: SZZVHX-HelveticaNeueLTStd-Lt6;
+	color: rgb(0,0,0);
+}
+
+</style>
+<!-- End inline CSS -->
+
+<!-- Begin embedded font definitions -->
+<style type="text/css" >
+
+@font-face {
+	font-family: SZZVHX-HelveticaNeueLTStd-Bd6;
+	src: url("6/fonts/SZZVHX-HelveticaNeueLTStd-Bd.otf");
+}
+
+@font-face {
+	font-family: RRPPTZ-HelveticaNeueLTStd-It6;
+	src: url("6/fonts/RRPPTZ-HelveticaNeueLTStd-It.otf");
+}
+
+@font-face {
+	font-family: RRPPTZ-HelveticaNeueLTStd-Lt6;
+	src: url("6/fonts/RRPPTZ-HelveticaNeueLTStd-Lt.otf");
+}
+
+@font-face {
+	font-family: MT-Extra6;
+	src: url("6/fonts/MT-Extra.otf");
+}
+
+@font-face {
+	font-family: SZZVHX-HelveticaNeueLTStd-Lt6;
+	src: url("6/fonts/SZZVHX-HelveticaNeueLTStd-Lt.otf");
+}
+
+@font-face {
+	font-family: RRPPTZ-HelveticaNeueLTStd-BdIt6;
+	src: url("6/fonts/RRPPTZ-HelveticaNeueLTStd-BdIt.otf");
+}
+
+</style>
+<!-- End embedded font definitions -->
+
+<!-- Begin text definitions (Positioned/styled in CSS) -->
+<div class="t">
+<div class="s1_6">
+<div id="t1_6">AMISTAR TOP</div>
+</div>
+<div class="s2_6">
+<div id="t2_6">/	6</div>
+</div>
+<div class="s3_6">
+<div id="t3_6">AMISTAR</div>
+</div>
+<div class="s4_6">
+<div id="t4_6">®</div>
+</div>
+<div class="s3_6">
+<div id="t5_6">and BRAVO</div>
+</div>
+<div class="s4_6">
+<div id="t6_6">®</div>
+</div>
+<div class="s5_6">
+<div id="t7_6">=	Registered	Trade	Marks	of	a	Syngenta	</div>
+<div id="t8_6">Group	Company.</div>
+</div>
+<div class="s3_6">
+<div id="t9_6">© SYNGENTA AG, 2000. </div>
+</div>
+<div class="s5_6">
+<div id="ta_6">Copyright	of	this	document	is	reserved.	</div>
+<div id="tb_6">Any	unauthorised	reproduction	is	forbidden.</div>
+<div id="tc_6">SA.	Reg.	2012-08-01</div>
+</div>
+<div class="s1_6">
+<div id="td_6">STRAWBERRIES </div>
+</div>
+<div class="s2_6">
+<div id="te_6">(cont.)</div>
+</div>
+<div class="s1_6">
+<div id="tf_6">REMARKS:</div>
+</div>
+<div class="s2_6">
+<div id="tg_6">•	 	Do	 not	 make	 more	 than	 four	 (4)	 applications	 of	</div>
+</div>
+<div class="s1_6">
+<div id="th_6">AMISTAR </div>
+<div id="ti_6">TOP</div>
+</div>
+<div class="s2_6">
+<div id="tj_6">per	season.</div>
+<div id="tk_6">•	 	Apply	in	sufficient	water	volumes	to	ensure	adequate	cover-</div>
+<div id="tl_6">age.</div>
+<div id="tm_6">•	 	</div>
+</div>
+<div class="s1_6">
+<div id="tn_6">AMISTAR TOP </div>
+</div>
+<div class="s2_6">
+<div id="to_6">can	be	used	in	a	spray	programme	with	other	</div>
+<div id="tp_6">registered	products	not	containing	azoxystrobin	or	difenoco-</div>
+<div id="tq_6">nazole.	</div>
+</div>
+<div class="s1_6">
+<div id="tr_6">Spray volume:</div>
+</div>
+<div class="s2_6">
+<div id="ts_6">•	</div>
+</div>
+<div class="s1_6">
+<div id="tt_6">Tractor application: </div>
+</div>
+<div class="s2_6">
+<div id="tu_6">250	-	1000	</div>
+</div>
+<div class="s6_6">
+<div id="tv_6">l</div>
+</div>
+<div class="s2_6">
+<div id="tw_6">water/ha</div>
+<div id="tx_6">•	</div>
+</div>
+<div class="s1_6">
+<div id="ty_6">Aerial application: </div>
+</div>
+<div class="s2_6">
+<div id="tz_6">30	-	40</div>
+</div>
+<div class="s6_6">
+<div id="t10_6">l</div>
+</div>
+<div class="s2_6">
+<div id="t11_6">water/ha	</div>
+</div>
+<div class="s1_6">
+<div id="t12_6">4.4.16 </div>
+<div id="t13_6">TOMATOES</div>
+<div id="t14_6">DOSAGE</div>
+<div id="t15_6">Ground application</div>
+</div>
+<div class="s2_6">
+<div id="t16_6">100	m</div>
+</div>
+<div class="s6_6">
+<div id="t17_6">l</div>
+</div>
+<div class="s2_6">
+<div id="t18_6">/100	</div>
+</div>
+<div class="s6_6">
+<div id="t19_6">l</div>
+</div>
+<div class="s2_6">
+<div id="t1a_6">water</div>
+</div>
+<div class="s1_6">
+<div id="t1b_6">CROP / DISEASE</div>
+<div id="t1c_6">TOMATOES </div>
+<div id="t1d_6">Early blight</div>
+</div>
+<div class="s7_6">
+<div id="t1e_6">(</div>
+</div>
+<div class="s8_6">
+<div id="t1f_6">Alternaria solani</div>
+</div>
+<div class="s2_6">
+<div id="t1g_6">)</div>
+</div>
+<div class="s1_6">
+<div id="t1h_6">REMARKS:</div>
+</div>
+<div class="s2_6">
+<div id="t1i_6">•	 	Apply	 in	 blocks	 of	 two	 (2)	 consecutive	 sprays	 7	 -	 10	 days	</div>
+<div id="t1j_6">apart	when	the	weather	favours	the	disease.	</div>
+<div id="t1k_6">•	 	Alternatively,	applications	can	be	repeated	at	14	day	intervals,	</div>
+<div id="t1l_6">provided	that	these	applications	are	alternated	every	7	days	</div>
+<div id="t1m_6">with	other	products	registered	for	early	blight	control.	</div>
+<div id="t1n_6">•	 	</div>
+</div>
+<div class="s1_6">
+<div id="t1o_6">AMISTAR TOP</div>
+</div>
+<div class="s2_6">
+<div id="t1p_6">alternated	with	BRAVO	720	in	a	7	day	cycle	</div>
+<div id="t1q_6">will	 also	 control	</div>
+</div>
+<div class="s1_6">
+<div id="t1r_6">late blight </div>
+</div>
+<div class="s7_6">
+<div id="t1s_6">(</div>
+</div>
+<div class="s8_6">
+<div id="t1t_6">Phytophthora infestans</div>
+</div>
+<div class="s2_6">
+<div id="t1u_6">)	 pre-</div>
+<div id="t1v_6">ventatively.</div>
+<div id="t1w_6">•	 	Do	not	exceed	six	(6)	applications	of	</div>
+</div>
+<div class="s1_6">
+<div id="t1x_6">AMISTAR TOP, </div>
+</div>
+<div class="s2_6">
+<div id="t1y_6">or	six	</div>
+<div id="t1z_6">(6)	 applications	 of	 products	 containing	 azoxystrobin,	 or	 six	</div>
+<div id="t20_6">(6)	 applications	 of	 products	 containing	 difenoconazole	 per	</div>
+<div id="t21_6">season.		</div>
+</div>
+<div class="s1_6">
+<div id="t22_6">Spray volume:</div>
+</div>
+<div class="s2_6">
+<div id="t23_6">•	</div>
+</div>
+<div class="s1_6">
+<div id="t24_6">Tractor application: </div>
+</div>
+<div class="s2_6">
+<div id="t25_6">500	-	1400</div>
+</div>
+<div class="s6_6">
+<div id="t26_6">l</div>
+</div>
+<div class="s2_6">
+<div id="t27_6">water/ha	</div>
+</div>
+<div class="s1_6">
+<div id="t28_6">4.4.17 </div>
+<div id="t29_6">TUBEROUS CROPS </div>
+</div>
+<div class="s2_6">
+<div id="t2a_6">(Cassava,	ginger,	sweet	potato)</div>
+</div>
+<div class="s1_6">
+<div id="t2b_6">DOSAGE</div>
+<div id="t2c_6">Ground or </div>
+<div id="t2d_6">aerial application</div>
+</div>
+<div class="s2_6">
+<div id="t2e_6">500	-	1000	m</div>
+</div>
+<div class="s6_6">
+<div id="t2f_6">l</div>
+</div>
+<div class="s2_6">
+<div id="t2g_6">/ha</div>
+</div>
+<div class="s1_6">
+<div id="t2h_6">CROP / DISEASE</div>
+<div id="t2i_6">TUBEROUS CROPS</div>
+<div id="t2j_6">Black dot</div>
+</div>
+<div class="s7_6">
+<div id="t2k_6">(</div>
+</div>
+<div class="s8_6">
+<div id="t2l_6">Colletotrichum coccodes</div>
+</div>
+<div class="s2_6">
+<div id="t2m_6">)</div>
+</div>
+<div class="s1_6">
+<div id="t2n_6">Early blight</div>
+</div>
+<div class="s7_6">
+<div id="t2o_6">(</div>
+</div>
+<div class="s8_6">
+<div id="t2p_6">Alternaria </div>
+</div>
+<div class="s2_6">
+<div id="t2q_6">spp.)</div>
+</div>
+<div class="s1_6">
+<div id="t2r_6">Rust</div>
+</div>
+<div class="s7_6">
+<div id="t2s_6">(</div>
+</div>
+<div class="s8_6">
+<div id="t2t_6">Puccinia helianthi</div>
+</div>
+<div class="s2_6">
+<div id="t2u_6">)</div>
+</div>
+<div class="s9_6">
+<div id="t2v_6">Septoria</div>
+</div>
+<div class="s1_6">
+<div id="t2w_6">leaf spot</div>
+</div>
+<div class="s7_6">
+<div id="t2x_6">(</div>
+</div>
+<div class="s8_6">
+<div id="t2y_6">Septoria </div>
+</div>
+<div class="s2_6">
+<div id="t2z_6">spp.)</div>
+</div>
+<div class="s1_6">
+<div id="t30_6">REMARKS:</div>
+</div>
+<div class="s2_6">
+<div id="t31_6">•	 	Apply	 as	 part	 of	 a	 protectant	 programme	 before	 disease	</div>
+<div id="t32_6">occurs.		</div>
+<div id="t33_6">•	 	Apply	no	more	than	two	(2)	consecutive	sprays	7	to	10	days	</div>
+<div id="t34_6">apart.	</div>
+<div id="t35_6">•	 	Do	 not	 make	 more	 than	 four	 (4)	 applications	 of	</div>
+</div>
+<div class="s1_6">
+<div id="t36_6">AMISTAR </div>
+<div id="t37_6">TOP</div>
+</div>
+<div class="s2_6">
+<div id="t38_6">per	season.</div>
+<div id="t39_6">•	 	Apply	in	sufficient	water	volumes	to	ensure	adequate	cover-</div>
+<div id="t3a_6">age.</div>
+<div id="t3b_6">•	 	</div>
+</div>
+<div class="s1_6">
+<div id="t3c_6">AMISTAR TOP </div>
+</div>
+<div class="s2_6">
+<div id="t3d_6">can	be	used	in	a	spray	programme	with	other	</div>
+<div id="t3e_6">registered	products	not	containing	azoxystrobin	or	difenoco-</div>
+<div id="t3f_6">nazole.	</div>
+<div id="t3g_6">•	 	The	addition	of	a	spreading	/	penetrating	type	adjuvant	may	</div>
+<div id="t3h_6">enhance	efficacy.</div>
+<div id="t3i_6">•	 	The	addition	of	an	adjuvant	may	increase	product	efficacy.	</div>
+</div>
+<div class="s1_6">
+<div id="t3j_6">Spray volume:</div>
+</div>
+<div class="s2_6">
+<div id="t3k_6">•	</div>
+</div>
+<div class="s1_6">
+<div id="t3l_6">Tractor application: </div>
+</div>
+<div class="s2_6">
+<div id="t3m_6">250	-	1000	</div>
+</div>
+<div class="s6_6">
+<div id="t3n_6">l</div>
+</div>
+<div class="s2_6">
+<div id="t3o_6">water/ha</div>
+<div id="t3p_6">•	</div>
+</div>
+<div class="s1_6">
+<div id="t3q_6">Aerial application: </div>
+</div>
+<div class="s2_6">
+<div id="t3r_6">30	-	40</div>
+</div>
+<div class="s6_6">
+<div id="t3s_6">l</div>
+</div>
+<div class="s2_6">
+<div id="t3t_6">water/ha	</div>
+</div>
+</div>
+<!-- End text definitions -->
+
+<!-- Begin page background -->
+<div id="pg6Overlay" style="width:100%; height:100%; position:absolute; z-index:0; background-color:rgba(0,0,0,0);"></div>
+<div id="pg6"><img src="6/6.png" id="pdf6" style="width:909px; height:1286px; background-color:white;"/></div>
+
+<!-- End page background -->
+
+<!-- Begin page loading JS -->
+<script type="text/javascript">
+var f6 = [['t1_6',338],['t5_6',239],['t9_6',489],['tg_6',1113],['tk_6',1345],['tm_6',65],['tn_6',335],['tr_6',331],['tt_6',457],['ty_6',420],['t15_6',446],['t1b_6',401],['t1d_6',262],['t1f_6',347],['t1i_6',1359],['t1k_6',1359],['t1n_6',65],['t1o_6',339],['t1q_6',359],['t1r_6',243],['t1t_6',514],['t1u_6',125],['t1w_6',852],['t1x_6',354],['t1z_6',1307],['t20_6',1307],['t22_6',331],['t24_6',457],['t29_6',462],['t2c_6',237],['t2d_6',401],['t2h_6',401],['t2i_6',462],['t2j_6',223],['t2l_6',548],['t2n_6',262],['t2t_6',381],['t2w_6',203],['t31_6',1359],['t33_6',1359],['t35_6',1113],['t39_6',1345],['t3b_6',65],['t3c_6',335],['t3g_6',1359],['t3i_6',1301],['t3j_6',331],['t3l_6',457],['t3q_6',420]];
+var c6 = 0;
+function fontAdjustments6(){;
+	if (c6<f6.length) {
+		adjustWordSpacing(f6[c6][0],f6[c6][1]);
+		c6++;
+		if (c6%10 == 0) {
+			setTimeout(function(){fontAdjustments6()},0);
+		} else {
+			fontAdjustments6();
+		}
+	}
+};
+function load6(){
+	var timeout = 100;
+	if (navigator.userAgent.match(/iPhone|iPad|iPod|Android/i)) timeout = 500;
+	setTimeout(fontAdjustments6,timeout);
+}
+</script>
+<!-- End page loading JS -->
+
+</div>
+
+</div>
+<div id="brand" style="margin:0 auto; width:94px; padding:5px; clear: both;">
+<a href="../../index.html">
+<img title="PDF to HTML5 Conversion by IDRsolutions" alt="PDF to HTML5 Conversion by IDRsolutions" style="border:0;" src="icons/logo.png" />
+</a>
+</div>
+<script type="text/javascript">
+	makeNavBar(6,6,909,1286,0);
+</script>
+</body>
+</html>

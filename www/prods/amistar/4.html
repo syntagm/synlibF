@@ -1,0 +1,1214 @@
+<!DOCTYPE html >
+<html lang="en">
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+<meta charset="utf-8" />
+<title>AMISTAR___Eng___2008_01_21 Page4</title>
+</head>
+
+<body style="background-color:#919191;">
+
+<style type="text/css">
+    body {
+        margin:0;
+    }
+
+    #nav button {
+        width: 100px;
+        height: 30px;
+        vertical-align: middle;
+    }
+
+    #nav select {
+        width: 100px;
+        height: 27px;
+        vertical-align: middle;
+    }
+
+</style>
+
+<script type="text/javascript">
+
+    var zoom = 1;
+    var width = 0;
+    var height = 0;
+    var curPg = 0;
+    var pgCount = 0;
+	var jpedal;
+	var type;
+
+    function makeNavBar(pageCount, curPage, w, h, t) {
+	
+		//type 0 = single pages
+		//type 1 = splitspreads
+
+        pgCount = pageCount;
+        curPg = curPage;
+        width = w;
+        height = h;
+		type = t;
+        var opt;
+
+        //Populate the goto dropdown with page numbers
+        var goBtn = d("goBtn");
+		
+		if (type == 1) {//splitspreads
+			jpedal = d("container" + curPage);
+			
+			opt = document.createElement('option');
+            opt.value = 1;
+            opt.innerHTML = "Page " + 1;
+			goBtn.appendChild(opt);
+			
+			for (var i = 2; i <= pgCount; i += 2) {
+			
+				opt = document.createElement('option');
+				opt.value = i;
+				var text;
+				if (i != pgCount || pgCount % 2 == 1) {
+					text = "Page " + i + "-" + (i+1);
+				} else {
+					text = "Page " + i;
+				}
+				opt.innerHTML = text;
+				goBtn.appendChild(opt);
+			}
+			
+			goBtn.selectedIndex = curPage/2;
+			
+		} else {
+			jpedal = d("jpedal");
+			
+			for (var i = 1; i <= pgCount; i++) {
+				opt = document.createElement('option');
+				opt.value = i;
+				opt.innerHTML = "Page " + i;
+				goBtn.appendChild(opt);
+			}
+			goBtn.selectedIndex = curPage - 1;
+		}
+		
+
+
+        jpedal.style.transformOrigin = "top left";
+        jpedal.style.webkitTransformOrigin = "top left";
+        jpedal.style.msTransformOrigin = "top left";
+        jpedal.style.mozTransformOrigin = "top left";
+        jpedal.style.oTransformOrigin = "top left";
+        jpedal.style.margin = "0";
+
+        d("container").style.width = width + "px";
+        d("container").style.height = height + "px";
+
+        var doc = document.URL;
+        var jumper = "?zoom=";
+        var jumIdx = doc.toString().indexOf(jumper);
+        var zm = parseFloat(doc.substr(jumIdx + jumper.length));
+		var zoomBtn = d("zoomBtn");
+		if (width > getWidth()) {
+			zoomBtn.options[1].text = "100%";
+			zoomBtn.options[2].text = "Fit Width (Reset)";
+		}
+
+        if (!isNaN(zm) && zm > 0 && zm != 1) {
+            zoom = zm;
+            updateZoom();
+        } else if (width > getWidth()) {
+			zoomBtn.selectedIndex = 2;
+			zoomUpdate();
+		}
+    }
+	
+	function getWidth() {
+		var w = 0;
+		if (self.innerHeight) {
+			w = self.innerWidth;
+		} else if (document.documentElement && document.documentElement.clientHeight) {
+			w = document.documentElement.clientWidth;
+		} else if (document.body) {
+			w = document.body.clientWidth;
+		}
+		return w;
+	}
+
+    function updateZoom() {
+        jpedal.style.transform = "scale(" + zoom + ")";
+        jpedal.style.WebkitTransform = "scale(" + zoom + ")";
+        jpedal.style.msTransform = "scale(" + zoom + ")";
+        jpedal.style.MozTransform = "scale(" + zoom + ")";
+        jpedal.style.OTransform = "scale(" + zoom + ")";
+        d("container").style.width = width * zoom + "px";
+        d("container").style.height = height * zoom + "px";
+
+        var percent = Math.floor(zoom*100) + "%";
+        d("zoomBtn").options[0].innerHTML = percent;
+        d("zoomBtn").selectedIndex = 0;
+    }
+
+    function zoomIn() {
+        zoom = zoom*1.2;
+        updateZoom();
+    }
+
+    function zoomUpdate() {
+        var index = d("zoomBtn").selectedIndex;
+
+        if (index == 0) {
+            //Always current. Do nothing
+        } else if (index == 1) {//Reset
+            zoom = 1;
+        } else if (index == 2) {//Fit Width
+            var winWidth = window.innerWidth;
+            zoom = (winWidth - 40) / width;
+        } else if (index == 3) {//Fit Height
+            var winHeight = window.innerHeight;
+            zoom = (winHeight - 60) / height;
+        } else if (index == 4) {//Fit Page
+            var winWidth = window.innerWidth;
+            var winHeight = window.innerHeight;
+            var wScale = (winWidth - 40) / width;
+            var hScale = (winHeight - 60) / height;
+
+            if (wScale > hScale) {
+                zoom = hScale;
+            } else {
+                zoom = wScale;
+            }
+        }
+
+        updateZoom();
+    }
+
+    function zoomOut() {
+        zoom = zoom/1.2;
+        updateZoom();
+    }
+
+    function goToPage() {
+		var pg;
+		if (type == 0) {
+			pg = d("goBtn").selectedIndex + 1;
+		} else {
+			pg = (d("goBtn").selectedIndex * 2) + 1;
+		}
+        if (pg != curPg) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(pg, pgCount);
+			} else {
+				link = getMagazinePageHref(pg, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function getPageHref(page, count) {
+        var iWithLeadingZeros = page.toString();
+        var leadingZerosNeeded = count.toString().length - iWithLeadingZeros.length;
+
+        if(page === 1) {
+            iWithLeadingZeros = "index"
+        } else {
+            for(var n = 0; n < leadingZerosNeeded; n ++) {
+                iWithLeadingZeros = "0" + iWithLeadingZeros;
+            }
+        }
+        return iWithLeadingZeros;
+    }
+	
+	function getMagazinePageHref(page, count) {
+		if(page === 1) return getPageHref(page, count);
+		else if(page % 2 === 0) {
+			if(page === count)
+				return getPageHref(page, count);
+			else
+				return getPageHref(page, count) + "-" + getPageHref(page + 1, count);
+			}
+				else {
+			return getPageHref(page-1, count) + "-" + getPageHref(page, count);
+		}
+	}
+
+    function next() {
+        if (curPg < pgCount) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(curPg + 1, pgCount);
+			} else {
+				if (pgCount % 2 != 0 && curPg + 1 == pgCount) return;
+				link = getMagazinePageHref(curPg + 2, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function prev() {
+        if (curPg > 1) {
+            var zm = zoom != 1 ? "?zoom=" + zoom : "";
+			var link;
+			if (type == 0) {
+				link = getPageHref(curPg - 1, pgCount);
+			} else {
+				link = getMagazinePageHref(curPg - 1, pgCount);
+			}
+            window.open(link + ".html" + zm, "_self");
+        }
+    }
+
+    function d(id){
+        return document.getElementById(id);
+    }
+
+</script>
+
+<div id="nav" style="background-color:#919191; padding-top: 10px; text-align: center; position: fixed; width: 100%; height: 40px; z-index:999;">
+    <button onclick="prev()" id="prev">Prev &lt;&lt;</button>
+    <select id="goBtn" onchange="goToPage()">
+
+    </select>
+    <button onclick="next()" id="next" style="margin-right:30px;">&gt;&gt; Next</button>
+
+    <button onclick="zoomOut()" id="zoomOut">Zoom Out</button>
+    <select id="zoomBtn" onchange="zoomUpdate()">
+        <option value="0">100%</option>
+        <option value="1">100% (Reset)</option>
+        <option value="2">Fit Width</option>
+        <option value="3">Fit Height</option>
+        <option value="4">Fit Page</option>
+
+    </select>
+    <button onclick="zoomIn()" id="zoomIn">Zoom In</button>
+</div>
+<div style="position:relative; width: 100%; height: 50px;"></div>
+
+<div id="container" style="margin: 0 auto 10px;">
+</script>
+
+
+
+<div id="jpedal" style="position:relative; width: 909px; height: 1286px; overflow: hidden; margin: 0 auto; box-shadow: 0 2px 6px rgba(100, 100, 100, 0.5);">
+
+<!-- Begin shared CSS values -->
+<!--[if lt IE 9]><style type="text/css">.t div div{zoom: 25%;}</style><![endif]-->
+<style type="text/css" >
+.t {
+	position: absolute;
+	-webkit-transform-origin: top left;
+	-moz-transform-origin: top left;
+	-o-transform-origin: top left;
+	-ms-transform-origin: top left;
+	-webkit-transform: scale(0.25);
+	-moz-transform: scale(0.25);
+	-o-transform: scale(0.25);
+	-ms-transform: scale(0.25);
+	z-index: 1;
+}
+.t div div {
+	position:absolute;
+	white-space:nowrap;
+	overflow:visible;
+}
+</style>
+<!-- End shared CSS values -->
+
+<!-- Begin shared JS -->
+<script type="text/javascript">
+
+// Ensure that we're not replacing any onload events
+function addLoadEvent(func) {
+	var oldonload = window.onload;
+	if (typeof window.onload != 'function') {
+		window.onload = func;
+	} else {
+		window.onload = function() {
+			if (oldonload) {
+				oldonload();
+			}
+			func();
+		}
+	}
+}
+addLoadEvent(function(){load4();});
+
+function adjustWordSpacing(divName,actualWidth) {
+
+	var el = document.getElementById(divName);
+	var rawWidth=el.offsetWidth;
+	if(actualWidth>rawWidth){
+		var spacing= 0;
+		var s=spacing+'px';
+		el.style.wordSpacing = s;
+		rawWidth=el.offsetWidth;
+
+		var diff=rawWidth-actualWidth;
+		if(diff<0)
+			diff=-diff;
+		var newDiff=diff-1;
+
+		while (spacing<40 && (newDiff===diff || newDiff<diff)){
+
+			diff=newDiff;
+			spacing= spacing+1;
+
+			s=spacing+'px';
+			el.style.wordSpacing = s;
+
+			newDiff=el.offsetWidth-actualWidth;
+			if(newDiff<0)
+				newDiff=-newDiff;
+		}
+		if(diff<=newDiff)
+			spacing=spacing-1;
+		s=spacing+'px';
+		el.style.wordSpacing =s;
+	}
+}
+
+</script>
+<!-- End shared JS -->
+
+
+<!-- Begin inline CSS -->
+<style type="text/css" >
+
+#t1_4{left:1573px;top:183px;}
+#t2_4{left:1795px;top:171px;}
+#t3_4{left:1847px;top:183px;}
+#t4_4{left:1828px;top:1515px;}
+#t5_4{left:1967px;top:1515px;}
+#t6_4{left:1828px;top:1631px;}
+#t7_4{left:1897px;top:1631px;}
+#t8_4{left:2133px;top:1631px;}
+#t9_4{left:1897px;top:1689px;}
+#ta_4{left:1828px;top:1764px;}
+#tb_4{left:1897px;top:1764px;}
+#tc_4{left:2905px;top:1764px;}
+#td_4{left:3152px;top:1764px;}
+#te_4{left:1897px;top:1822px;}
+#tf_4{left:1828px;top:1898px;}
+#tg_4{left:1897px;top:1898px;}
+#th_4{left:2196px;top:1898px;}
+#ti_4{left:2437px;top:1898px;}
+#tj_4{left:1897px;top:1956px;}
+#tk_4{left:1828px;top:2031px;}
+#tl_4{left:1897px;top:2031px;}
+#tm_4{left:2141px;top:2031px;}
+#tn_4{left:2387px;top:2031px;}
+#to_4{left:1897px;top:2089px;}
+#tp_4{left:1863px;top:3657px;}
+#tq_4{left:2057px;top:3664px;}
+#tr_4{left:2075px;top:3657px;}
+#ts_4{left:2273px;top:3664px;}
+#tt_4{left:2291px;top:3657px;}
+#tu_4{left:2315px;top:3657px;}
+#tv_4{left:2466px;top:3664px;}
+#tw_4{left:2483px;top:3657px;}
+#tx_4{left:2693px;top:3664px;}
+#ty_4{left:2723px;top:3657px;}
+#tz_4{left:3130px;top:3664px;}
+#t10_4{left:3147px;top:3657px;}
+#t11_4{left:1863px;top:3715px;}
+#t12_4{left:2008px;top:3722px;}
+#t13_4{left:2025px;top:3715px;}
+#t14_4{left:2052px;top:3715px;}
+#t15_4{left:2203px;top:3722px;}
+#t16_4{left:2236px;top:3715px;}
+#t17_4{left:2637px;top:3722px;}
+#t18_4{left:2670px;top:3715px;}
+#t19_4{left:1863px;top:3773px;}
+#t1a_4{left:1863px;top:3964px;}
+#t1b_4{left:2358px;top:3964px;}
+#t1c_4{left:1863px;top:4022px;}
+#t1d_4{left:2794px;top:4139px;}
+#t1e_4{left:1857px;top:2232px;}
+#t1f_4{left:1850px;top:2348px;}
+#t1g_4{left:1850px;top:2464px;}
+#t1h_4{left:1850px;top:2522px;}
+#t1i_4{left:1850px;top:2580px;}
+#t1j_4{left:1850px;top:2638px;}
+#t1k_4{left:1850px;top:2696px;}
+#t1l_4{left:1850px;top:2754px;}
+#t1m_4{left:2082px;top:2754px;}
+#t1n_4{left:2318px;top:2232px;}
+#t1o_4{left:2334px;top:2348px;}
+#t1p_4{left:2472px;top:2348px;}
+#t1q_4{left:2493px;top:2348px;}
+#t1r_4{left:2396px;top:2406px;}
+#t1s_4{left:2759px;top:2232px;}
+#t1t_4{left:2580px;top:2348px;}
+#t1u_4{left:2580px;top:2406px;}
+#t1v_4{left:2580px;top:2464px;}
+#t1w_4{left:2580px;top:2522px;}
+#t1x_4{left:2739px;top:2522px;}
+#t1y_4{left:2947px;top:2522px;}
+#t1z_4{left:3111px;top:2522px;}
+#t20_4{left:2580px;top:2580px;}
+#t21_4{left:2580px;top:2638px;}
+#t22_4{left:2580px;top:2696px;}
+#t23_4{left:2580px;top:2754px;}
+#t24_4{left:2580px;top:2812px;}
+#t25_4{left:2580px;top:2870px;}
+#t26_4{left:1848px;top:2989px;}
+#t27_4{left:2016px;top:2989px;}
+#t28_4{left:1848px;top:3047px;}
+#t29_4{left:1848px;top:3105px;}
+#t2a_4{left:1848px;top:3163px;}
+#t2b_4{left:336px;top:276px;}
+#t2c_4{left:267px;top:351px;}
+#t2d_4{left:336px;top:351px;}
+#t2e_4{left:637px;top:351px;}
+#t2f_4{left:880px;top:351px;}
+#t2g_4{left:336px;top:409px;}
+#t2h_4{left:267px;top:484px;}
+#t2i_4{left:336px;top:484px;}
+#t2j_4{left:583px;top:484px;}
+#t2k_4{left:829px;top:484px;}
+#t2l_4{left:336px;top:542px;}
+#t2m_4{left:267px;top:618px;}
+#t2n_4{left:336px;top:618px;}
+#t2o_4{left:657px;top:618px;}
+#t2p_4{left:906px;top:618px;}
+#t2q_4{left:336px;top:676px;}
+#t2r_4{left:267px;top:1721px;}
+#t2s_4{left:405px;top:1721px;}
+#t2t_4{left:267px;top:1837px;}
+#t2u_4{left:336px;top:1837px;}
+#t2v_4{left:574px;top:1837px;}
+#t2w_4{left:267px;top:1912px;}
+#t2x_4{left:336px;top:1912px;}
+#t2y_4{left:1279px;top:1912px;}
+#t2z_4{left:1519px;top:1912px;}
+#t30_4{left:336px;top:1970px;}
+#t31_4{left:267px;top:2046px;}
+#t32_4{left:336px;top:2046px;}
+#t33_4{left:637px;top:2046px;}
+#t34_4{left:880px;top:2046px;}
+#t35_4{left:336px;top:2104px;}
+#t36_4{left:267px;top:2179px;}
+#t37_4{left:336px;top:2179px;}
+#t38_4{left:583px;top:2179px;}
+#t39_4{left:829px;top:2179px;}
+#t3a_4{left:336px;top:2237px;}
+#t3b_4{left:267px;top:3648px;}
+#t3c_4{left:405px;top:3648px;}
+#t3d_4{left:267px;top:3764px;}
+#t3e_4{left:336px;top:3764px;}
+#t3f_4{left:573px;top:3764px;}
+#t3g_4{left:336px;top:3822px;}
+#t3h_4{left:267px;top:3897px;}
+#t3i_4{left:336px;top:3897px;}
+#t3j_4{left:769px;top:3897px;}
+#t3k_4{left:1007px;top:3897px;}
+#t3l_4{left:336px;top:3956px;}
+#t3m_4{left:336px;top:4014px;}
+#t3n_4{left:267px;top:4089px;}
+#t3o_4{left:336px;top:4089px;}
+#t3p_4{left:637px;top:4089px;}
+#t3q_4{left:880px;top:4089px;}
+#t3r_4{left:336px;top:4147px;}
+#t3s_4{left:297px;top:837px;}
+#t3t_4{left:291px;top:954px;}
+#t3u_4{left:291px;top:1070px;}
+#t3v_4{left:291px;top:1128px;}
+#t3w_4{left:303px;top:1128px;}
+#t3x_4{left:291px;top:1186px;}
+#t3y_4{left:291px;top:1244px;}
+#t3z_4{left:291px;top:1302px;}
+#t40_4{left:454px;top:1302px;}
+#t41_4{left:758px;top:837px;}
+#t42_4{left:757px;top:954px;}
+#t43_4{left:797px;top:1012px;}
+#t44_4{left:838px;top:1012px;}
+#t45_4{left:859px;top:1012px;}
+#t46_4{left:1200px;top:837px;}
+#t47_4{left:1020px;top:954px;}
+#t48_4{left:1020px;top:1012px;}
+#t49_4{left:1020px;top:1070px;}
+#t4a_4{left:1020px;top:1128px;}
+#t4b_4{left:1020px;top:1186px;}
+#t4c_4{left:1020px;top:1244px;}
+#t4d_4{left:1020px;top:1302px;}
+#t4e_4{left:1456px;top:1302px;}
+#t4f_4{left:1020px;top:1360px;}
+#t4g_4{left:1020px;top:1418px;}
+#t4h_4{left:1020px;top:1476px;}
+#t4i_4{left:1020px;top:1534px;}
+#t4j_4{left:1020px;top:1592px;}
+#t4k_4{left:297px;top:2385px;}
+#t4l_4{left:291px;top:2501px;}
+#t4m_4{left:291px;top:2617px;}
+#t4n_4{left:291px;top:2676px;}
+#t4o_4{left:303px;top:2676px;}
+#t4p_4{left:291px;top:2734px;}
+#t4q_4{left:639px;top:2734px;}
+#t4r_4{left:758px;top:2385px;}
+#t4s_4{left:749px;top:2501px;}
+#t4t_4{left:886px;top:2501px;}
+#t4u_4{left:908px;top:2501px;}
+#t4v_4{left:1200px;top:2385px;}
+#t4w_4{left:1020px;top:2501px;}
+#t4x_4{left:1020px;top:2559px;}
+#t4y_4{left:1020px;top:2617px;}
+#t4z_4{left:1020px;top:2676px;}
+#t50_4{left:1020px;top:2734px;}
+#t51_4{left:1020px;top:2792px;}
+#t52_4{left:1020px;top:2850px;}
+#t53_4{left:1020px;top:2908px;}
+#t54_4{left:1020px;top:2966px;}
+#t55_4{left:1020px;top:3024px;}
+#t56_4{left:1020px;top:3140px;}
+#t57_4{left:1020px;top:3198px;}
+#t58_4{left:1085px;top:3198px;}
+#t59_4{left:1332px;top:3198px;}
+#t5a_4{left:1020px;top:3256px;}
+#t5b_4{left:1226px;top:3256px;}
+#t5c_4{left:1020px;top:3314px;}
+#t5d_4{left:1216px;top:3314px;}
+#t5e_4{left:1515px;top:3314px;}
+#t5f_4{left:1020px;top:3372px;}
+#t5g_4{left:1020px;top:3430px;}
+#t5h_4{left:1857px;top:488px;}
+#t5i_4{left:1850px;top:604px;}
+#t5j_4{left:1850px;top:720px;}
+#t5k_4{left:1850px;top:779px;}
+#t5l_4{left:1862px;top:779px;}
+#t5m_4{left:2223px;top:779px;}
+#t5n_4{left:2318px;top:488px;}
+#t5o_4{left:2348px;top:604px;}
+#t5p_4{left:2458px;top:604px;}
+#t5q_4{left:2479px;top:604px;}
+#t5r_4{left:2363px;top:662px;}
+#t5s_4{left:2459px;top:662px;}
+#t5t_4{left:2363px;top:720px;}
+#t5u_4{left:2759px;top:488px;}
+#t5v_4{left:2580px;top:604px;}
+#t5w_4{left:2580px;top:662px;}
+#t5x_4{left:2580px;top:720px;}
+#t5y_4{left:2580px;top:779px;}
+#t5z_4{left:2580px;top:837px;}
+#t60_4{left:2580px;top:895px;}
+#t61_4{left:2580px;top:953px;}
+#t62_4{left:1848px;top:1068px;}
+#t63_4{left:1994px;top:1068px;}
+#t64_4{left:1848px;top:1126px;}
+#t65_4{left:1848px;top:1184px;}
+#t66_4{left:1848px;top:1242px;}
+#t67_4{left:1848px;top:1300px;}
+#t68_4{left:1848px;top:1358px;}
+#t69_4{left:1825px;top:282px;}
+#t6a_4{left:1894px;top:282px;}
+#t6b_4{left:2139px;top:282px;}
+#t6c_4{left:2385px;top:282px;}
+#t6d_4{left:1894px;top:340px;}
+
+.s5_4{
+	FONT-SIZE: 42px;
+	FONT-FAMILY: FMEPGX-HelveticaNeueLTStd-Bd4;
+	color: rgb(0,0,0);
+}
+
+.s1_4{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: FMEPGX-HelveticaNeueLTStd-Bd4;
+	color: rgb(0,0,0);
+}
+
+.s3_4{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: FMEPGX-HelveticaNeueLTStd-Lt4;
+	color: rgb(0,0,0);
+}
+
+.s8_4{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: FMEPGX-HelveticaNeueLTStd-It4;
+	color: rgb(0,0,0);
+}
+
+.s6_4{
+	FONT-SIZE: 21px;
+	FONT-FAMILY: FMEPGX-HelveticaNeueLTStd-Bd_T1_0_7014;
+	color: rgb(0,0,0);
+}
+
+.s9_4{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: Mt-ExtraPlain4;
+	color: rgb(0,0,0);
+}
+
+.s7_4{
+	FONT-SIZE: 42px;
+	FONT-FAMILY: FMEPGX-HelveticaNeueLTStd-Lt4;
+	color: rgb(0,0,0);
+}
+
+.s4_4{
+	FONT-SIZE: 48px;
+	FONT-FAMILY: FMEPGX-HelveticaNeueLTStd-Lt_C0_1_35064;
+	color: rgb(0,0,0);
+}
+
+.s2_4{
+	FONT-SIZE: 36px;
+	FONT-FAMILY: FMEPGX-HelveticaNeueLTStd-Bd_T1_0_7014;
+	color: rgb(0,0,0);
+}
+
+</style>
+<!-- End inline CSS -->
+
+<!-- Begin embedded font definitions -->
+<style type="text/css" >
+
+@font-face {
+	font-family: FMEPGX-HelveticaNeueLTStd-It4;
+	src: url("4/fonts/FMEPGX-HelveticaNeueLTStd-It.otf");
+}
+
+@font-face {
+	font-family: FMEPGX-HelveticaNeueLTStd-Bd_T1_0_7014;
+	src: url("4/fonts/FMEPGX-HelveticaNeueLTStd-Bd_T1_0_701.otf");
+}
+
+@font-face {
+	font-family: Mt-ExtraPlain4;
+	src: url("4/fonts/Mt-ExtraPlain.otf");
+}
+
+@font-face {
+	font-family: FMEPGX-HelveticaNeueLTStd-Bd4;
+	src: url("4/fonts/FMEPGX-HelveticaNeueLTStd-Bd.otf");
+}
+
+@font-face {
+	font-family: FMEPGX-HelveticaNeueLTStd-Lt_C0_1_35064;
+	src: url("4/fonts/FMEPGX-HelveticaNeueLTStd-Lt_C0_1_3506.otf");
+}
+
+@font-face {
+	font-family: FMEPGX-HelveticaNeueLTStd-Lt4;
+	src: url("4/fonts/FMEPGX-HelveticaNeueLTStd-Lt.otf");
+}
+
+</style>
+<!-- End embedded font definitions -->
+
+<!-- Begin text definitions (Positioned/styled in CSS) -->
+<div class="t">
+<div class="s1_4">
+<div id="t1_4">AMISTAR</div>
+</div>
+<div class="s2_4">
+<div id="t2_4">®</div>
+</div>
+<div class="s3_4">
+<div id="t3_4">/ 4</div>
+<div id="t4_4">4.3.9 </div>
+<div id="t5_4">ONIONS</div>
+</div>
+<div class="s4_4">
+<div id="t6_4">•	</div>
+</div>
+<div class="s1_4">
+<div id="t7_4">AMISTAR	</div>
+</div>
+<div class="s3_4">
+<div id="t8_4">can be used in a spray programme with other regi-</div>
+<div id="t9_4">stered fungicides.</div>
+</div>
+<div class="s4_4">
+<div id="ta_4">•	</div>
+<div id="tb_4">Do	 not	 apply	 more	 than	 two	 applications	 of	</div>
+</div>
+<div class="s1_4">
+<div id="tc_4">AMISTAR	</div>
+</div>
+<div class="s3_4">
+<div id="td_4">to </div>
+<div id="te_4">onions in the same season.</div>
+</div>
+<div class="s4_4">
+<div id="tf_4">•	</div>
+<div id="tg_4">Do	not	apply	</div>
+</div>
+<div class="s1_4">
+<div id="th_4">AMISTAR</div>
+</div>
+<div class="s3_4">
+<div id="ti_4">at the first or last application in the </div>
+<div id="tj_4">spray programme.</div>
+</div>
+<div class="s4_4">
+<div id="tk_4">•	</div>
+<div id="tl_4">Never	 use	</div>
+</div>
+<div class="s1_4">
+<div id="tm_4">AMISTAR</div>
+</div>
+<div class="s3_4">
+<div id="tn_4">as a corrective treatment or after an </div>
+<div id="to_4">unsuccessful application of any product.</div>
+</div>
+<div class="s5_4">
+<div id="tp_4">AMISTAR</div>
+</div>
+<div class="s6_4">
+<div id="tq_4">®</div>
+</div>
+<div class="s5_4">
+<div id="tr_4">,	KARATE</div>
+</div>
+<div class="s6_4">
+<div id="ts_4">®</div>
+</div>
+<div class="s7_4">
+<div id="tt_4">, </div>
+</div>
+<div class="s5_4">
+<div id="tu_4">BRAVO</div>
+</div>
+<div class="s6_4">
+<div id="tv_4">®</div>
+</div>
+<div class="s5_4">
+<div id="tw_4">,	RIDOMIL</div>
+</div>
+<div class="s6_4">
+<div id="tx_4">®</div>
+</div>
+<div class="s5_4">
+<div id="ty_4">GOLD,	THIOVIT	JET</div>
+</div>
+<div class="s6_4">
+<div id="tz_4">®</div>
+</div>
+<div class="s5_4">
+<div id="t10_4">,		</div>
+<div id="t11_4">TOPAZ</div>
+</div>
+<div class="s6_4">
+<div id="t12_4">®</div>
+</div>
+<div class="s7_4">
+<div id="t13_4">, </div>
+</div>
+<div class="s5_4">
+<div id="t14_4">SCORE</div>
+</div>
+<div class="s6_4">
+<div id="t15_4">®</div>
+</div>
+<div class="s5_4">
+<div id="t16_4">and	COMPLEMENT</div>
+</div>
+<div class="s6_4">
+<div id="t17_4">®</div>
+</div>
+<div class="s7_4">
+<div id="t18_4">= Registered Trade Marks </div>
+<div id="t19_4">of a Syngenta Group Company. </div>
+</div>
+<div class="s5_4">
+<div id="t1a_4">©	SYNGENTA	AG,	2000.	</div>
+</div>
+<div class="s7_4">
+<div id="t1b_4">Copyright of this document is reserved. Any </div>
+<div id="t1c_4">unauthorised reproduction is forbidden.</div>
+<div id="t1d_4">SA. Reg. 2008-01-21</div>
+</div>
+<div class="s1_4">
+<div id="t1e_4">CROP	/	DISEASE</div>
+<div id="t1f_4">ONIONS</div>
+<div id="t1g_4">Purple	Blotch</div>
+</div>
+<div class="s8_4">
+<div id="t1h_4">(Alternaria porri) </div>
+</div>
+<div class="s1_4">
+<div id="t1i_4">Stemphylium	</div>
+<div id="t1j_4">Leaf	Blotch</div>
+</div>
+<div class="s8_4">
+<div id="t1k_4">(Stemphylium </div>
+<div id="t1l_4">vesicarium</div>
+</div>
+<div class="s3_4">
+<div id="t1m_4">)</div>
+</div>
+<div class="s1_4">
+<div id="t1n_4">DOSAGE</div>
+</div>
+<div class="s3_4">
+<div id="t1o_4">400 m</div>
+</div>
+<div class="s9_4">
+<div id="t1p_4">l</div>
+</div>
+<div class="s3_4">
+<div id="t1q_4">/</div>
+<div id="t1r_4">ha</div>
+</div>
+<div class="s1_4">
+<div id="t1s_4">REMARKS</div>
+</div>
+<div class="s3_4">
+<div id="t1t_4">Apply as a full cover pre-</div>
+<div id="t1u_4">ventative spray. Apply two </div>
+<div id="t1v_4">consecutive sprays 14 days </div>
+<div id="t1w_4">apart </div>
+<div id="t1x_4">starting </div>
+<div id="t1y_4">when </div>
+<div id="t1z_4">leaf </div>
+<div id="t20_4">bases begin to thicken or </div>
+<div id="t21_4">later in the season when risk </div>
+<div id="t22_4">of disease development is </div>
+<div id="t23_4">high. Apply in sufficient water </div>
+<div id="t24_4">volumes to ensure adequate </div>
+<div id="t25_4">coverage. </div>
+</div>
+<div class="s1_4">
+<div id="t26_4">Note:	 	</div>
+</div>
+<div class="s3_4">
+<div id="t27_4">Due to the waxy nature of onion leaves, it is recom-</div>
+<div id="t28_4">mended the AMISTAR be applied with COMPLEMENT at a </div>
+<div id="t29_4">rate of 0.25% to ensure adequate coverage and subsequent </div>
+<div id="t2a_4">disease control.</div>
+<div id="t2b_4">Cucurbits in the same season.</div>
+</div>
+<div class="s4_4">
+<div id="t2c_4">•	</div>
+<div id="t2d_4">Do	 not	 apply	</div>
+</div>
+<div class="s1_4">
+<div id="t2e_4">AMISTAR</div>
+</div>
+<div class="s3_4">
+<div id="t2f_4">at the first or last application in the </div>
+<div id="t2g_4">spray programme.</div>
+</div>
+<div class="s4_4">
+<div id="t2h_4">•	</div>
+<div id="t2i_4">Never	 use	</div>
+</div>
+<div class="s1_4">
+<div id="t2j_4">AMISTAR</div>
+</div>
+<div class="s3_4">
+<div id="t2k_4">as a corrective treatment or after an </div>
+<div id="t2l_4">unsuccessful application of any product.</div>
+</div>
+<div class="s4_4">
+<div id="t2m_4">•	</div>
+<div id="t2n_4">Do	 not	 apply	</div>
+</div>
+<div class="s1_4">
+<div id="t2o_4">AMISTAR</div>
+</div>
+<div class="s3_4">
+<div id="t2p_4">with any wetting agents such as </div>
+<div id="t2q_4">COMPLEMENT (L4853).</div>
+<div id="t2r_4">4.3.7 </div>
+<div id="t2s_4">DRY BEANS</div>
+</div>
+<div class="s4_4">
+<div id="t2t_4">•	</div>
+</div>
+<div class="s1_4">
+<div id="t2u_4">AMISTAR	</div>
+</div>
+<div class="s3_4">
+<div id="t2v_4">can be used in a spray programme with SCORE.</div>
+</div>
+<div class="s4_4">
+<div id="t2w_4">•	</div>
+<div id="t2x_4">Do	not	apply	more	than	two	applications	of	</div>
+</div>
+<div class="s1_4">
+<div id="t2y_4">AMISTAR	</div>
+</div>
+<div class="s3_4">
+<div id="t2z_4">to dry </div>
+<div id="t30_4">beans in the same season.</div>
+</div>
+<div class="s4_4">
+<div id="t31_4">•	</div>
+<div id="t32_4">Do	 not	 apply	</div>
+</div>
+<div class="s1_4">
+<div id="t33_4">AMISTAR</div>
+</div>
+<div class="s3_4">
+<div id="t34_4">at the first or last application in the </div>
+<div id="t35_4">spray programme.</div>
+</div>
+<div class="s4_4">
+<div id="t36_4">•	</div>
+<div id="t37_4">Never	 use	</div>
+</div>
+<div class="s1_4">
+<div id="t38_4">AMISTAR</div>
+</div>
+<div class="s3_4">
+<div id="t39_4">as a corrective treatment or after an </div>
+<div id="t3a_4">unsuccessful application of any product.</div>
+<div id="t3b_4">4.3.8 </div>
+<div id="t3c_4">PEPPERS (SWEET/CHILLI/PIQUANTE)</div>
+</div>
+<div class="s4_4">
+<div id="t3d_4">•	</div>
+</div>
+<div class="s1_4">
+<div id="t3e_4">AMISTAR	</div>
+</div>
+<div class="s3_4">
+<div id="t3f_4">can be used in a spray programme with other regi-</div>
+<div id="t3g_4">stered fungicides.</div>
+</div>
+<div class="s4_4">
+<div id="t3h_4">•	</div>
+<div id="t3i_4">The	total	number	of	</div>
+</div>
+<div class="s1_4">
+<div id="t3j_4">AMISTAR</div>
+</div>
+<div class="s3_4">
+<div id="t3k_4">applications per season, must </div>
+<div id="t3l_4">not exceed 30 % (maximum of six) of the total number of appli-</div>
+<div id="t3m_4">cations in spray programme. </div>
+</div>
+<div class="s4_4">
+<div id="t3n_4">•	</div>
+<div id="t3o_4">Do	 not	 apply	</div>
+</div>
+<div class="s1_4">
+<div id="t3p_4">AMISTAR</div>
+</div>
+<div class="s3_4">
+<div id="t3q_4">at the first or last application in the </div>
+<div id="t3r_4">spray programme.</div>
+</div>
+<div class="s1_4">
+<div id="t3s_4">CROP	/	DISEASE</div>
+<div id="t3t_4">CUCURBITS</div>
+<div id="t3u_4">Powdery	mildew</div>
+</div>
+<div class="s3_4">
+<div id="t3v_4">(</div>
+</div>
+<div class="s8_4">
+<div id="t3w_4">Sphaerotheca </div>
+<div id="t3x_4">fuliginea/</div>
+<div id="t3y_4">Erysiphe cichora-</div>
+<div id="t3z_4">cearum</div>
+</div>
+<div class="s3_4">
+<div id="t40_4">) </div>
+</div>
+<div class="s1_4">
+<div id="t41_4">DOSAGE</div>
+</div>
+<div class="s3_4">
+<div id="t42_4">400 - 500 </div>
+<div id="t43_4">m</div>
+</div>
+<div class="s9_4">
+<div id="t44_4">l</div>
+</div>
+<div class="s3_4">
+<div id="t45_4">/ha</div>
+</div>
+<div class="s1_4">
+<div id="t46_4">REMARKS</div>
+</div>
+<div class="s3_4">
+<div id="t47_4">Apply as a full cover pre-</div>
+<div id="t48_4">ventive spray. Apply two </div>
+<div id="t49_4">consecutive sprays 7 days </div>
+<div id="t4a_4">apart starting at flower ini-</div>
+<div id="t4b_4">tiation. Use the higher rate </div>
+<div id="t4c_4">when conditions favour dis-</div>
+<div id="t4d_4">ease development. </div>
+<div id="t4e_4">Apply in </div>
+<div id="t4f_4">sufficient water volumes to </div>
+<div id="t4g_4">ensure adequate coverage. </div>
+<div id="t4h_4">Apply in a spray programme </div>
+<div id="t4i_4">together with TOPAZ 200 </div>
+<div id="t4j_4">EW and BRAVO 720.</div>
+</div>
+<div class="s1_4">
+<div id="t4k_4">CROP	/	DISEASE</div>
+<div id="t4l_4">DRY	BEANS</div>
+<div id="t4m_4">Anthracnose</div>
+</div>
+<div class="s3_4">
+<div id="t4n_4">(</div>
+</div>
+<div class="s8_4">
+<div id="t4o_4">Colletotrichum</div>
+<div id="t4p_4">lindemuthianum</div>
+</div>
+<div class="s3_4">
+<div id="t4q_4">)</div>
+</div>
+<div class="s1_4">
+<div id="t4r_4">DOSAGE</div>
+</div>
+<div class="s3_4">
+<div id="t4s_4">400 m</div>
+</div>
+<div class="s9_4">
+<div id="t4t_4">l</div>
+</div>
+<div class="s3_4">
+<div id="t4u_4">/ha</div>
+</div>
+<div class="s1_4">
+<div id="t4v_4">REMARKS</div>
+</div>
+<div class="s3_4">
+<div id="t4w_4">Apply as a full cover pre-</div>
+<div id="t4x_4">ventive spray. Apply two </div>
+<div id="t4y_4">consecutive sprays 14 days </div>
+<div id="t4z_4">apart starting at flower initia-</div>
+<div id="t50_4">tion. Apply in sufficient water </div>
+<div id="t51_4">volumes to ensure adequate </div>
+<div id="t52_4">coverage. For optimal fungal </div>
+<div id="t53_4">disease control, apply in a </div>
+<div id="t54_4">spray programme together </div>
+<div id="t55_4">with SCORE.</div>
+<div id="t56_4">The above mentioned rate </div>
+<div id="t57_4">of </div>
+</div>
+<div class="s1_4">
+<div id="t58_4">AMISTAR</div>
+</div>
+<div class="s3_4">
+<div id="t59_4">will also con-</div>
+<div id="t5a_4">trol rust (</div>
+</div>
+<div class="s8_4">
+<div id="t5b_4">Uromyces appen-</div>
+<div id="t5c_4">diculatus</div>
+</div>
+<div class="s3_4">
+<div id="t5d_4">) if present. </div>
+<div id="t5e_4">Refer </div>
+<div id="t5f_4">to Resistant Management </div>
+<div id="t5g_4">Strategy above.</div>
+</div>
+<div class="s1_4">
+<div id="t5h_4">CROP	/	DISEASE</div>
+<div id="t5i_4">PEPPERS</div>
+<div id="t5j_4">Powdery	mildew</div>
+</div>
+<div class="s3_4">
+<div id="t5k_4">(</div>
+</div>
+<div class="s8_4">
+<div id="t5l_4">Leveillula taurica</div>
+</div>
+<div class="s3_4">
+<div id="t5m_4">)</div>
+</div>
+<div class="s1_4">
+<div id="t5n_4">DOSAGE</div>
+</div>
+<div class="s3_4">
+<div id="t5o_4">60 m</div>
+</div>
+<div class="s9_4">
+<div id="t5p_4">l</div>
+</div>
+<div class="s3_4">
+<div id="t5q_4">/</div>
+<div id="t5r_4">100 </div>
+</div>
+<div class="s9_4">
+<div id="t5s_4">l</div>
+</div>
+<div class="s3_4">
+<div id="t5t_4">water</div>
+</div>
+<div class="s1_4">
+<div id="t5u_4">REMARKS</div>
+</div>
+<div class="s3_4">
+<div id="t5v_4">Apply as a full cover pre-</div>
+<div id="t5w_4">ventive spray. Apply two </div>
+<div id="t5x_4">consecutive sprays 7 days </div>
+<div id="t5y_4">apart starting at flower initia-</div>
+<div id="t5z_4">tion. Apply in sufficient water </div>
+<div id="t60_4">volu mes to ensure adequate </div>
+<div id="t61_4">coverage.</div>
+</div>
+<div class="s1_4">
+<div id="t62_4">Note:</div>
+</div>
+<div class="s3_4">
+<div id="t63_4">Applications must be made preventatively and can be </div>
+<div id="t64_4">repeated at 14 day intervals, depending on the disease pres-</div>
+<div id="t65_4">sure and spray programme being used. If a 14 day interval is </div>
+<div id="t66_4">used, ensure that an alternate product is used after 7 days, </div>
+<div id="t67_4">particularly if weather conditions are conducive to disease </div>
+<div id="t68_4">development.</div>
+</div>
+<div class="s4_4">
+<div id="t69_4">•	</div>
+<div id="t6a_4">Never	 use	</div>
+</div>
+<div class="s1_4">
+<div id="t6b_4">AMISTAR</div>
+</div>
+<div class="s3_4">
+<div id="t6c_4">as a corrective treatment or after an </div>
+<div id="t6d_4">unsuccessful application of any product.</div>
+</div>
+</div>
+<!-- End text definitions -->
+
+<!-- Begin page background -->
+<div id="pg4Overlay" style="width:100%; height:100%; position:absolute; z-index:0; background-color:rgba(0,0,0,0);"></div>
+<div id="pg4"><img src="4/4.png" id="pdf4" style="width:909px; height:1286px; background-color:white;"/></div>
+
+<!-- End page background -->
+
+<!-- Begin page loading JS -->
+<script type="text/javascript">
+var f4 = [['t3_4',58],['t8_4',1061],['t9_4',373],['tb_4',997],['te_4',580],['ti_4',756],['tj_4',388],['tl_4',234],['tn_4',806],['to_4',853],['t18_4',489],['t19_4',590],['t1b_4',801],['t1c_4',728],['t1d_4',400],['t1h_4',347],['t1o_4',137],['t1t_4',606],['t1u_4',606],['t1v_4',605],['t20_4',606],['t21_4',606],['t22_4',605],['t23_4',606],['t24_4',606],['t26_4',160],['t27_4',1159],['t28_4',1327],['t29_4',1327],['t2a_4',333],['t2b_4',643],['t2d_4',294],['t2f_4',763],['t2g_4',388],['t2i_4',235],['t2k_4',813],['t2l_4',853],['t2n_4',307],['t2p_4',737],['t2q_4',515],['t2s_4',268],['t2v_4',1037],['t2z_4',124],['t30_4',569],['t32_4',294],['t34_4',763],['t35_4',388],['t37_4',235],['t39_4',813],['t3a_4',853],['t3c_4',820],['t3f_4',1070],['t3g_4',373],['t3k_4',635],['t3l_4',1306],['t3m_4',605],['t3o_4',294],['t3q_4',763],['t3r_4',388],['t3y_4',380],['t42_4',211],['t47_4',605],['t48_4',605],['t49_4',605],['t4a_4',605],['t4b_4',605],['t4c_4',605],['t4d_4',402],['t4e_4',170],['t4f_4',605],['t4g_4',605],['t4h_4',605],['t4i_4',605],['t4j_4',454],['t4s_4',137],['t4w_4',605],['t4x_4',605],['t4y_4',605],['t4z_4',605],['t50_4',605],['t51_4',605],['t52_4',605],['t53_4',605],['t54_4',605],['t55_4',277],['t56_4',605],['t59_4',294],['t5a_4',205],['t5b_4',400],['t5d_4',252],['t5f_4',605],['t5g_4',332],['t5l_4',360],['t5o_4',110],['t5v_4',605],['t5w_4',605],['t5x_4',606],['t5y_4',605],['t5z_4',605],['t60_4',606],['t63_4',1181],['t64_4',1327],['t65_4',1327],['t66_4',1327],['t67_4',1327],['t6a_4',235],['t6c_4',808],['t6d_4',853]];
+var c4 = 0;
+function fontAdjustments4(){;
+	if (c4<f4.length) {
+		adjustWordSpacing(f4[c4][0],f4[c4][1]);
+		c4++;
+		if (c4%10 == 0) {
+			setTimeout(function(){fontAdjustments4()},0);
+		} else {
+			fontAdjustments4();
+		}
+	}
+};
+function load4(){
+	var timeout = 100;
+	if (navigator.userAgent.match(/iPhone|iPad|iPod|Android/i)) timeout = 500;
+	setTimeout(fontAdjustments4,timeout);
+}
+</script>
+<!-- End page loading JS -->
+
+</div>
+
+</div>
+<div id="brand" style="margin:0 auto; width:94px; padding:5px; clear: both;">
+<a href="../../index.html">
+<img title="PDF to HTML5 Conversion by IDRsolutions" alt="PDF to HTML5 Conversion by IDRsolutions" style="border:0;" src="icons/logo.png" />
+</a>
+</div>
+<script type="text/javascript">
+	makeNavBar(4,4,909,1286,0);
+</script>
+</body>
+</html>
